@@ -33,6 +33,18 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 .rb{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;margin-left:6px}
 .fd{font-size:11px;color:#475569;margin-top:4px;line-height:1.6}
 .fd span{display:inline-block;background:#0ea5e908;border:1px solid #cbd5e1;padding:1px 8px;border-radius:4px;margin:1px 4px 1px 0}
+
+.data-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:4px;font-size:13px;transition:all .12s}
+.data-row:hover{background:#f1f5f9}
+.del-btn{background:none;border:1px solid #fecaca;color:#dc2626;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .12s}
+.del-btn:hover{background:#fef2f2}
+.avail-card{border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:8px}
+.avail-slot{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;margin:2px 4px 2px 0}
+.avail-open{background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0}
+.avail-tight{background:#fef9c3;color:#a16207;border:1px solid #fde68a}
+.avail-full{background:#fee2e2;color:#dc2626;border:1px solid #fecaca}
+.conf-card{border:1px solid #fecaca;border-radius:10px;padding:14px;margin-bottom:8px;background:#fef2f2}
+.conf-reco{border:1px solid #bbf7d0;border-radius:10px;padding:14px;margin-top:8px;background:#f0fdf4}
 </style>
 </head>
 <body>
@@ -73,7 +85,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 </div>
 
 <!-- MAIN -->
-<div style="flex:1;display:flex;overflow:hidden">
+<div id="panelScheduler" style="flex:1;display:flex;overflow:hidden">
   <!-- LEFT -->
   <div style="width:420px;min-width:340px;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:20px;border-bottom:1px solid #e2e8f0;overflow:auto">
@@ -97,6 +109,94 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
     <div id="dbar" style="padding:8px 14px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid #e2e8f0;background:#f8fafc"></div>
     <div id="map" style="flex:1;min-height:0;height:100%;width:100%"></div>
     <div id="spnl" style="height:240px;border-top:1px solid #e2e8f0;overflow:auto;padding:14px;background:#f8fafc;display:none"></div>
+  </div>
+</div>
+
+
+<!-- DATA MANAGEMENT PANEL -->
+<div id="panelData" style="flex:1;overflow:auto;padding:24px;display:none;font-family:'DM Sans',system-ui,sans-serif">
+  <div style="max-width:900px;margin:0 auto">
+    
+    <!-- CSV Upload -->
+    <div style="border:1px solid #cbd5e1;border-radius:14px;padding:24px;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:4px">📂 Import from ZenMaid</div>
+      <div style="font-size:13px;color:#475569;margin-bottom:16px">Upload your ZenMaid CSV export to replace or merge with current schedule data.</div>
+      <div id="csvDropZone" style="border:2px dashed #cbd5e1;border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .15s;background:#f8fafc"
+        onclick="document.getElementById('csvFile').click()"
+        ondragover="event.preventDefault();this.style.borderColor='#3b82f6';this.style.background='#eff6ff'"
+        ondragleave="this.style.borderColor='#cbd5e1';this.style.background='#f8fafc'"
+        ondrop="event.preventDefault();this.style.borderColor='#cbd5e1';this.style.background='#f8fafc';handleCSVFile(event.dataTransfer.files[0])">
+        <div style="font-size:28px;margin-bottom:8px">📄</div>
+        <div style="font-size:14px;font-weight:600;color:#1e293b">Drop CSV file here or click to browse</div>
+        <div style="font-size:12px;color:#64748b;margin-top:4px">ZenMaid Appointment Export (.csv)</div>
+      </div>
+      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleCSVFile(this.files[0])">
+      <div id="csvStatus" style="margin-top:12px;font-size:13px;display:none"></div>
+      <div id="csvPreview" style="margin-top:12px;display:none"></div>
+    </div>
+
+    <!-- Manual Add Form -->
+    <div style="border:1px solid #cbd5e1;border-radius:14px;padding:24px;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:4px">➕ Add Appointment Manually</div>
+      <div style="font-size:13px;color:#475569;margin-bottom:16px">Add a new appointment to the schedule.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Client Name *</label><input id="fmName" class="inp" placeholder="Jane Smith"></div>
+        <div><label class="lbl">Address *</label><input id="fmAddr" class="inp" placeholder="123 Main St"></div>
+        <div><label class="lbl">City *</label><input id="fmCity" class="inp" placeholder="Lehi, Sandy, etc."></div>
+        <div><label class="lbl">Team *</label>
+          <select id="fmTeam" class="inp" style="appearance:none"><option value="Salt Lake County">Team Salt Lake</option><option value="Utah County">Team Utah</option></select>
+        </div>
+        <div><label class="lbl">Day *</label>
+          <select id="fmDay" class="inp" style="appearance:none"><option value="">Select day</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select>
+        </div>
+        <div><label class="lbl">Start Time *</label><input id="fmTime" class="inp" placeholder="9:00 AM"></div>
+        <div><label class="lbl">Hours *</label><input id="fmHours" type="number" class="inp" placeholder="2.5" step="0.25" min="0.5" max="8"></div>
+        <div><label class="lbl">Recurrence *</label>
+          <select id="fmRec" class="inp" style="appearance:none"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>One-time</option></select>
+        </div>
+      </div>
+      <button onclick="addManualEntry()" style="margin-top:16px;padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">Add to Schedule</button>
+    </div>
+
+    <!-- Current Schedule List with Remove -->
+    <div style="border:1px solid #cbd5e1;border-radius:14px;padding:24px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#1e293b">📋 Current Schedule</div>
+          <div id="schedCount" style="font-size:13px;color:#475569"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select id="filterTeam" class="inp" style="width:auto;padding:8px 12px;font-size:12px;appearance:none" onchange="renderDataList()">
+            <option value="">All Teams</option><option value="Salt Lake County">Team Salt Lake</option><option value="Utah County">Team Utah</option>
+          </select>
+          <select id="filterDay" class="inp" style="width:auto;padding:8px 12px;font-size:12px;appearance:none" onchange="renderDataList()">
+            <option value="">All Days</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+          </select>
+        </div>
+      </div>
+      <div id="dataList" style="max-height:400px;overflow:auto"></div>
+    </div>
+
+    <!-- Conflict Analyzer -->
+    <div style="border:1px solid #cbd5e1;border-radius:14px;padding:24px">
+      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:4px">⚠️ Conflict Analyzer</div>
+      <div style="font-size:13px;color:#475569;margin-bottom:16px">Scans the schedule for overlapping appointments and suggests reschedules.</div>
+      <button onclick="analyzeConflicts()" style="padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">🔍 Analyze Conflicts</button>
+      <div id="conflictResults" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD PANEL -->
+<div id="panelDashboard" style="flex:1;overflow:auto;padding:24px;display:none;font-family:'DM Sans',system-ui,sans-serif">
+  <div style="max-width:1000px;margin:0 auto">
+    <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:4px">📊 Availability Dashboard</div>
+    <div style="font-size:13px;color:#475569;margin-bottom:16px">Shows open slots across the next 4 weeks for each team.</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="dashSL" class="ch on" onclick="dashTeam='Salt Lake County';renderDashboard()" style="font-size:13px">🏔️ Team Salt Lake</button>
+      <button id="dashUT" class="ch" onclick="dashTeam='Utah County';renderDashboard()" style="font-size:13px">🏡 Team Utah</button>
+    </div>
+    <div id="dashGrid"></div>
   </div>
 </div>
 
@@ -770,6 +870,438 @@ function doLogout(){
   if(confirm("Sign out of CleanRoute?"))auth.signOut();
 }
 } // end firebase else
+
+
+
+// ══════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════
+var activeTab="scheduler";
+var dashTeam="Salt Lake County";
+
+function switchTab(tab){
+  activeTab=tab;
+  document.getElementById("panelScheduler").style.display=tab==="scheduler"?"flex":"none";
+  document.getElementById("panelData").style.display=tab==="data"?"block":"none";
+  document.getElementById("panelDashboard").style.display=tab==="dashboard"?"block":"none";
+  document.getElementById("tabSched").className="ch "+(tab==="scheduler"?"on":"");
+  document.getElementById("tabData").className="ch "+(tab==="data"?"on":"");
+  document.getElementById("tabDash").className="ch "+(tab==="dashboard"?"on":"");
+  if(tab==="data")renderDataList();
+  if(tab==="dashboard")renderDashboard();
+}
+
+// ══════════════════════════════════════
+// CSV UPLOAD & PARSING
+// ══════════════════════════════════════
+function handleCSVFile(file){
+  if(!file)return;
+  var status=document.getElementById("csvStatus");
+  var preview=document.getElementById("csvPreview");
+  status.style.display="block";status.style.color="#475569";
+  status.textContent="Reading "+file.name+"...";
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var lines=e.target.result.split("\n");
+      // Find header row (contains "Appointment ID")
+      var headerIdx=-1;
+      for(var i=0;i<Math.min(5,lines.length);i++){
+        if(lines[i].indexOf("Appointment ID")>=0){headerIdx=i;break;}
+      }
+      if(headerIdx<0){status.textContent="Could not find ZenMaid header row.";status.style.color="#dc2626";return;}
+
+      var parsed=parseCSVRows(lines,headerIdx);
+      if(!parsed.length){status.textContent="No active appointments found.";status.style.color="#dc2626";return;}
+
+      // Deduplicate by address+day+time
+      var seen={};var deduped=[];
+      parsed.forEach(function(r){
+        var key=r.ad+"|"+r.dy+"|"+r.st;
+        if(!seen[key]){seen[key]=true;deduped.push(r);}
+      });
+
+      status.textContent="Found "+deduped.length+" unique appointments from "+file.name;
+      status.style.color="#16a34a";
+
+      preview.style.display="block";
+      preview.innerHTML="<div style='display:flex;gap:8px;margin-top:8px'>"+
+        "<button onclick='importCSV(window._csvData,&quot;replace&quot;)' style='padding:10px 20px;border-radius:8px;border:none;background:#2563eb;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit'>Replace All Data ("+deduped.length+")</button>"+
+        "<button onclick='importCSV(window._csvData,&quot;merge&quot;)' style='padding:10px 20px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#1e293b;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit'>Merge with Existing</button>"+
+        "</div>";
+      window._csvData=deduped;
+    }catch(err){
+      status.textContent="Error parsing CSV: "+err.message;status.style.color="#dc2626";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVRows(lines,headerIdx){
+  var headers=parseCSVLine(lines[headerIdx]);
+  var col={};
+  headers.forEach(function(h,i){col[h.trim()]=i;});
+
+  var results=[];
+  for(var i=headerIdx+1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    var r=parseCSVLine(lines[i]);
+    if(r.length<28)continue;
+    var status=r[col["Appointment Status"]]||"";
+    if(status.trim()!=="Active")continue;
+
+    var dt=r[col["Appointment Date"]]||"";
+    var d=new Date(dt);if(isNaN(d))continue;
+    var dayName=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()];
+
+    var startT=(r[col["Start Time"]]||"").trim();
+    var endT=(r[col["End Time"]]||"").trim();
+    var hrs=2;
+    try{
+      var s1=t2m(startT),s2=t2m(endT);
+      hrs=Math.round((s2-s1)/60*4)/4;
+    }catch(e){}
+
+    var freq=(r[col["Service Frequency"]]||"").trim();
+    var freqMap={"weekly":"Weekly","every 2 weeks":"Bi-weekly","every 4 weeks":"Monthly","monthly":"Monthly","one time":"One-time"};
+
+    var city=(r[col["Address City"]]||"").trim();
+    var team=(r[col["Team Name"]]||"").trim();
+    if(!team){team=gTeam(city)||"Salt Lake County";}
+
+    results.push({
+      id:"csv"+Date.now()+Math.random().toString(36).substr(2,4),
+      cl:(r[col["Customer Full Name"]]||"").trim(),
+      ad:(r[col["Address Line1"]]||"").trim(),
+      ct:city,
+      tm:team,
+      dy:dayName,
+      st:startT,
+      hr:hrs,
+      rc:freqMap[freq.toLowerCase()]||freq,
+      lat:0,lng:0
+    });
+  }
+  // Add coordinates
+  results.forEach(function(r){
+    var g=GEO[r.ct];
+    if(g){r.lat=g[0]+(Math.random()-.5)*.008;r.lng=g[1]+(Math.random()-.5)*.008;}
+  });
+  return results;
+}
+
+function parseCSVLine(line){
+  var result=[];var current="";var inQuotes=false;
+  for(var i=0;i<line.length;i++){
+    var ch=line[i];
+    if(ch==='"'){inQuotes=!inQuotes;}
+    else if(ch===","&&!inQuotes){result.push(current);current="";}
+    else{current+=ch;}
+  }
+  result.push(current);
+  return result;
+}
+
+function importCSV(data,mode){
+  if(mode==="replace"){S=data.slice();}
+  else{
+    var existing={};
+    S.forEach(function(s){existing[s.ad+"|"+s.dy+"|"+s.st]=true;});
+    data.forEach(function(d){
+      if(!existing[d.ad+"|"+d.dy+"|"+d.st])S.push(d);
+    });
+  }
+  sv();
+  document.getElementById("csvStatus").textContent=mode==="replace"?"Replaced with "+S.length+" appointments.":"Merged. Total: "+S.length+" appointments.";
+  document.getElementById("csvStatus").style.color="#16a34a";
+  document.getElementById("csvPreview").style.display="none";
+  renderDataList();render();updMap();
+  toast("Schedule updated ("+S.length+" appointments)");
+}
+
+// ══════════════════════════════════════
+// MANUAL ADD/REMOVE
+// ══════════════════════════════════════
+function addManualEntry(){
+  var name=document.getElementById("fmName").value.trim();
+  var addr=document.getElementById("fmAddr").value.trim();
+  var city=document.getElementById("fmCity").value.trim();
+  var team=document.getElementById("fmTeam").value;
+  var day=document.getElementById("fmDay").value;
+  var time=document.getElementById("fmTime").value.trim();
+  var hours=parseFloat(document.getElementById("fmHours").value);
+  var rec=document.getElementById("fmRec").value;
+
+  if(!name||!addr||!city||!day||!time||isNaN(hours)){toast("Fill all required fields","e");return;}
+
+  var g=GEO[resolveCity(city)]||null;
+  var resolved=resolveCity(city);
+
+  S.push({
+    id:"m"+Date.now(),cl:name,ad:addr,ct:resolved||city,
+    tm:team,dy:day,st:time,hr:hours,rc:rec,
+    lat:g?g[0]+(Math.random()-.5)*.006:0,
+    lng:g?g[1]+(Math.random()-.5)*.006:0
+  });
+  sv();
+  document.getElementById("fmName").value="";
+  document.getElementById("fmAddr").value="";
+  document.getElementById("fmCity").value="";
+  document.getElementById("fmDay").value="";
+  document.getElementById("fmTime").value="";
+  document.getElementById("fmHours").value="";
+  renderDataList();render();updMap();
+  toast("Added "+name+" on "+day);
+}
+
+function removeEntry(id){
+  S=S.filter(function(s){return s.id!==id;});
+  sv();renderDataList();render();updMap();
+  toast("Appointment removed");
+}
+
+function renderDataList(){
+  var el=document.getElementById("dataList");
+  var countEl=document.getElementById("schedCount");
+  if(!el)return;
+
+  var ft=document.getElementById("filterTeam")?document.getElementById("filterTeam").value:"";
+  var fd=document.getElementById("filterDay")?document.getElementById("filterDay").value:"";
+
+  var filtered=S.filter(function(s){
+    if(ft&&s.tm!==ft)return false;
+    if(fd&&s.dy!==fd)return false;
+    return true;
+  }).sort(function(a,b){
+    var di=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    var da=di.indexOf(a.dy)-di.indexOf(b.dy);
+    if(da!==0)return da;
+    return t2m(a.st)-t2m(b.st);
+  });
+
+  if(countEl)countEl.textContent=filtered.length+" of "+S.length+" appointments shown";
+
+  var h="";
+  var curDay="";
+  filtered.forEach(function(s){
+    if(s.dy!==curDay){
+      curDay=s.dy;
+      h+="<div style='font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 4px;padding-top:8px;border-top:1px solid #e2e8f0'>"+curDay+"</div>";
+    }
+    var t=TMETA[s.tm]||{c:"#666",i:"?",n:"?"};
+    h+="<div class='data-row'>"+
+      "<span style='color:"+t.c+";font-size:16px'>"+t.i+"</span>"+
+      "<span style='font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+s.cl+"</span>"+
+      "<span style='color:#475569;font-size:12px;min-width:80px'>"+s.ct+"</span>"+
+      "<span style='color:#475569;font-size:12px;min-width:70px'>"+s.st+"</span>"+
+      "<span style='color:#475569;font-size:12px;min-width:30px'>"+s.hr+"h</span>"+
+      "<span style='color:#475569;font-size:11px;min-width:60px'>"+s.rc+"</span>"+
+      "<button class='del-btn' onclick='removeEntry(&quot;"+s.id+"&quot;)'>Remove</button>"+
+    "</div>";
+  });
+  if(!filtered.length)h="<div style='padding:24px;text-align:center;color:#94a3b8'>No appointments match filters.</div>";
+  el.innerHTML=h;
+}
+
+// ══════════════════════════════════════
+// CONFLICT ANALYZER
+// ══════════════════════════════════════
+function analyzeConflicts(){
+  var el=document.getElementById("conflictResults");
+  var conflicts=[];
+  var buf=15; // 15 min buffer between appointments
+
+  ["Salt Lake County","Utah County"].forEach(function(team){
+    var DLIST=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    DLIST.forEach(function(day){
+      var dj=S.filter(function(s){return s.tm===team&&s.dy===day;}).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+      
+      // Check time overlaps
+      for(var i=0;i<dj.length;i++){
+        for(var j=i+1;j<dj.length;j++){
+          var aEnd=t2m(dj[i].st)+dj[i].hr*60;
+          var bStart=t2m(dj[j].st);
+          if(aEnd+buf>bStart){
+            conflicts.push({
+              type:"overlap",team:team,day:day,
+              a:dj[i],b:dj[j],
+              overlapMin:Math.round(aEnd+buf-bStart)
+            });
+          }
+        }
+      }
+
+      // Check capacity
+      var mx=maxPD(team,day);
+      if(dj.length>mx){
+        conflicts.push({type:"capacity",team:team,day:day,count:dj.length,max:mx,jobs:dj});
+      }
+    });
+  });
+
+  if(!conflicts.length){
+    el.innerHTML="<div style='padding:20px;text-align:center;border:1px solid #bbf7d0;border-radius:10px;background:#f0fdf4;color:#16a34a;font-weight:600'>✓ No conflicts found. Schedule looks good.</div>";
+    return;
+  }
+
+  var h="<div style='font-size:14px;font-weight:700;color:#dc2626;margin-bottom:12px'>Found "+conflicts.length+" issue"+(conflicts.length>1?"s":"")+":</div>";
+
+  conflicts.forEach(function(c,ci){
+    if(c.type==="overlap"){
+      var t=TMETA[c.team]||{i:"?",n:"?"};
+      h+="<div class='conf-card'>";
+      h+="<div style='font-size:13px;font-weight:700;color:#dc2626;margin-bottom:6px'>⚠ Time Overlap - "+c.day+" ("+t.n+")</div>";
+      h+="<div style='font-size:13px;color:#475569'><b>"+c.a.cl+"</b> ("+c.a.st+", "+c.a.hr+"h) overlaps with <b>"+c.b.cl+"</b> ("+c.b.st+", "+c.b.hr+"h) by "+c.overlapMin+" min</div>";
+      
+      // Recommend: find a day with capacity for the second appointment
+      var reco=findRecoSlot(c.b,c.team);
+      if(reco){
+        h+="<div class='conf-reco'>";
+        h+="<div style='font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px'>💡 Recommendation</div>";
+        h+="<div style='font-size:13px;color:#475569'>Move <b>"+c.b.cl+"</b> to <b>"+reco.day+" at "+reco.time+"</b>";
+        if(reco.nearClient)h+=" (near "+reco.nearClient+")";
+        h+="</div></div>";
+      }
+      h+="</div>";
+    }
+    else if(c.type==="capacity"){
+      var t=TMETA[c.team]||{i:"?",n:"?"};
+      h+="<div class='conf-card'>";
+      h+="<div style='font-size:13px;font-weight:700;color:#dc2626;margin-bottom:6px'>⚠ Over Capacity - "+c.day+" ("+t.n+")</div>";
+      h+="<div style='font-size:13px;color:#475569'>"+c.count+" appointments scheduled, max is "+c.max+".</div>";
+      
+      // Recommend moving the last appointment
+      var lastJob=c.jobs[c.jobs.length-1];
+      var reco=findRecoSlot(lastJob,c.team);
+      if(reco){
+        h+="<div class='conf-reco'>";
+        h+="<div style='font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px'>💡 Recommendation</div>";
+        h+="<div style='font-size:13px;color:#475569'>Move <b>"+lastJob.cl+"</b> to <b>"+reco.day+" at "+reco.time+"</b>";
+        if(reco.nearClient)h+=" (near "+reco.nearClient+")";
+        h+="</div></div>";
+      }
+      h+="</div>";
+    }
+  });
+
+  el.innerHTML=h;
+}
+
+function findRecoSlot(job,team){
+  var al=allowDays(team);
+  var best=null;var bestDist=999;
+
+  al.forEach(function(day){
+    if(day===job.dy)return; // skip same day
+    var dj=S.filter(function(s){return s.tm===team&&s.dy===day;}).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+    var mx=maxPD(team,day);
+    if(dj.length>=mx)return;
+
+    var dur=job.hr*60;var buf=30;
+    var bk=dj.map(function(j){return{s:t2m(j.st),e:t2m(j.st)+j.hr*60,cl:j.cl,lat:j.lat,lng:j.lng};});
+    
+    // Find first open window
+    var cur=480;
+    for(var i=0;i<bk.length;i++){
+      if(cur+dur<=bk[i].s){
+        var nearDist=999;var nearCl="";
+        if(job.lat&&bk[i].lat){nearDist=hav(job.lat,job.lng,bk[i].lat,bk[i].lng);nearCl=bk[i].cl;}
+        if(nearDist<bestDist){bestDist=nearDist;best={day:day,time:m2t(cur),nearClient:nearCl};}
+        break;
+      }
+      cur=Math.max(cur,bk[i].e+buf);
+    }
+    if(cur+dur<=1020&&!best){
+      best={day:day,time:m2t(cur),nearClient:""};
+    }
+  });
+  return best;
+}
+
+// ══════════════════════════════════════
+// AVAILABILITY DASHBOARD
+// ══════════════════════════════════════
+function renderDashboard(){
+  var el=document.getElementById("dashGrid");
+  if(!el)return;
+
+  document.getElementById("dashSL").className="ch "+(dashTeam==="Salt Lake County"?"on":"");
+  document.getElementById("dashUT").className="ch "+(dashTeam==="Utah County"?"on":"");
+
+  var today=new Date();today.setHours(0,0,0,0);
+  var al=allowDays(dashTeam);
+  var h="";
+
+  // Next 4 weeks
+  for(var w=0;w<4;w++){
+    var weekStart=new Date(today);weekStart.setDate(today.getDate()+(w*7)+(1-today.getDay()));
+    if(weekStart<=today)weekStart.setDate(weekStart.getDate()+7);
+    
+    h+="<div style='margin-bottom:20px'>";
+    h+="<div style='font-size:13px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px'>Week of "+fmtShort(weekStart)+"</div>";
+
+    for(var d=0;d<6;d++){
+      var dt=new Date(weekStart);dt.setDate(weekStart.getDate()+d);
+      var dayName=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][dt.getDay()];
+      if(al.indexOf(dayName)<0)continue;
+
+      var mx=maxPD(dashTeam,dayName);
+      var weekNum=Math.floor((dt.getTime()-today.getTime())/(7*86400000));
+      
+      // Count active appointments for this specific date
+      var dj=S.filter(function(s){
+        if(s.tm!==dashTeam||s.dy!==dayName)return false;
+        if(s.rc==="Weekly")return true;
+        if(s.rc==="Bi-weekly")return weekNum%2===0;
+        if(s.rc==="Monthly")return weekNum%4===0;
+        return true;
+      }).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+
+      var cnt=dj.length;
+      var statusClass=cnt>=mx?"avail-full":cnt>=mx-1?"avail-tight":"avail-open";
+      var statusText=cnt>=mx?"Full":cnt>=mx-1?"Tight":(mx-cnt)+" open";
+
+      // Calculate available windows
+      var dur=120; // 2h block as reference
+      var buf=30;
+      var bk=dj.map(function(j){return{s:t2m(j.st),e:t2m(j.st)+j.hr*60};});
+      var windows=[];var cur=480;
+      for(var i=0;i<bk.length;i++){
+        if(cur+60<=bk[i].s)windows.push(m2t(cur)+"-"+m2t(bk[i].s));
+        cur=Math.max(cur,bk[i].e+buf);
+      }
+      if(cur+60<=1020)windows.push(m2t(cur)+"-"+m2t(1020));
+
+      h+="<div class='avail-card'>";
+      h+="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px'>";
+      h+="<div style='font-weight:600;color:#1e293b'>"+dayName+", "+MOLONG[dt.getMonth()]+" "+dt.getDate()+", "+dt.getFullYear()+"</div>";
+      h+="<span class='avail-slot "+statusClass+"'>"+statusText+" ("+cnt+"/"+mx+")</span>";
+      h+="</div>";
+
+      if(windows.length>0&&cnt<mx){
+        h+="<div style='font-size:12px;color:#475569;margin-bottom:4px'>Available windows:</div>";
+        h+="<div>";
+        windows.forEach(function(w2){h+="<span class='avail-slot avail-open'>"+w2+"</span>";});
+        h+="</div>";
+      } else if(cnt>=mx){
+        h+="<div style='font-size:12px;color:#dc2626'>No availability. Day is at capacity.</div>";
+      }
+
+      // Show booked appointments
+      if(dj.length>0){
+        h+="<div style='margin-top:6px;font-size:11px;color:#94a3b8'>Booked: ";
+        dj.forEach(function(j,ji){h+=(ji>0?", ":"")+j.cl+" ("+j.st+")";});
+        h+="</div>";
+      }
+      h+="</div>";
+    }
+    h+="</div>";
+  }
+
+  el.innerHTML=h;
+}
+
 
 // EVENT WIRING
 // ══════════════════════════════════════
