@@ -89,6 +89,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
   <!-- LEFT -->
   <div style="width:420px;min-width:340px;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:20px;border-bottom:1px solid #e2e8f0;overflow:auto">
+      <button onclick="switchTab('dashboard')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:#2563eb;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;margin-bottom:14px" onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#2563eb'">← Back to Dashboard</button>
       <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:#475569">Find the Best Day</div>
       <!-- City -->
       <div style="margin-bottom:14px;position:relative">
@@ -124,6 +125,9 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 <!-- DASHBOARD PANEL -->
 <div id="panelDashboard" style="flex:1;overflow:auto;padding:24px;font-family:'DM Sans',system-ui,sans-serif">
   <div style="max-width:1000px;margin:0 auto">
+
+    <!-- Stats Cards -->
+    <div id="dashStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px"></div>
 
     <!-- Quick Action: Go to Search -->
     <div onclick="switchTab('scheduler')" style="padding:24px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;cursor:pointer;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;transition:all .15s;box-shadow:0 4px 12px rgba(37,99,235,0.3)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
@@ -911,7 +915,7 @@ function switchTab(tab){
   document.getElementById("tabSched").className="ch "+(tab==="scheduler"?"on":"");
   document.getElementById("tabDash").className="ch "+(tab==="dashboard"||tab==="data"?"on":"");
   if(tab==="data")renderDataList();
-  if(tab==="dashboard"){renderDashboard();renderDataList();}
+  if(tab==="dashboard"){renderDashStats();renderDashboard();renderDataList();}
   if(tab==="scheduler"){
     setTimeout(function(){
       if(!map&&window._gmReady){
@@ -1259,6 +1263,38 @@ function findRecoSlot(job,team){
 // ══════════════════════════════════════
 // AVAILABILITY DASHBOARD
 // ══════════════════════════════════════
+function renderDashStats(){
+  var el=document.getElementById("dashStats");if(!el)return;
+  var total=S.length;
+  var recurring=S.filter(function(s){return s.rc==="Weekly"||s.rc==="Bi-weekly"||s.rc==="Monthly";}).length;
+  var slc=S.filter(function(s){return s.tm==="Salt Lake County";}).length;
+  var utc=S.filter(function(s){return s.tm==="Utah County";}).length;
+  var weekly=S.filter(function(s){return s.rc==="Weekly";}).length;
+  var biweekly=S.filter(function(s){return s.rc==="Bi-weekly";}).length;
+
+  el.innerHTML=
+    "<div style='padding:20px;border-radius:12px;border:1px solid #e2e8f0;background:#fff'>"+
+      "<div style='font-size:12px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.05em'>Total Appointments</div>"+
+      "<div style='font-size:32px;font-weight:800;color:#1e293b;margin-top:4px'>"+total+"</div>"+
+      "<div style='font-size:12px;color:#475569;margin-top:2px'>"+recurring+" recurring</div>"+
+    "</div>"+
+    "<div style='padding:20px;border-radius:12px;border:1px solid #e2e8f0;background:#fff'>"+
+      "<div style='font-size:12px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.05em'>Recurring Clients</div>"+
+      "<div style='font-size:32px;font-weight:800;color:#1e293b;margin-top:4px'>"+recurring+"</div>"+
+      "<div style='font-size:12px;color:#475569;margin-top:2px'>"+weekly+" weekly · "+biweekly+" bi-weekly</div>"+
+    "</div>"+
+    "<div style='padding:20px;border-radius:12px;border:1px solid #dbeafe;background:#eff6ff'>"+
+      "<div style='font-size:12px;color:#2563eb;font-weight:600;text-transform:uppercase;letter-spacing:.05em'>🏔️ Team Salt Lake</div>"+
+      "<div style='font-size:32px;font-weight:800;color:#2563eb;margin-top:4px'>"+slc+"</div>"+
+      "<div style='font-size:12px;color:#475569;margin-top:2px'>Salt Lake County</div>"+
+    "</div>"+
+    "<div style='padding:20px;border-radius:12px;border:1px solid #bbf7d0;background:#f0fdf4'>"+
+      "<div style='font-size:12px;color:#16a34a;font-weight:600;text-transform:uppercase;letter-spacing:.05em'>🏡 Team Utah</div>"+
+      "<div style='font-size:32px;font-weight:800;color:#16a34a;margin-top:4px'>"+utc+"</div>"+
+      "<div style='font-size:12px;color:#475569;margin-top:2px'>Utah County</div>"+
+    "</div>";
+}
+
 function renderDashboard(){
   var el=document.getElementById("dashGrid");
   if(!el)return;
