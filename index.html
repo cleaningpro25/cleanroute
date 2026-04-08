@@ -766,13 +766,15 @@ function render(){
   document.getElementById("sbtn").disabled=!RV;
 
   // Toggle
-  var stg=document.getElementById("stog");stg.textContent="\u{1F4CB} "+(SS?"Hide":"Show")+" ("+S.length+")";stg.className="ch "+(SS?"on":"");
+  var stg=document.getElementById("stog");if(stg){stg.textContent="\u{1F4CB} "+(SS?"Hide":"Show")+" ("+S.length+")";stg.className="ch "+(SS?"on":"");}
 
-  // Day bar
-  var db=document.getElementById("dbar");
-  var dd="<button class='ch "+(!VD?"on":"")+"' onclick='VD=null;SO=null;render();updMap()' style='font-size:12px'>All</button>";
-  DAYS.forEach(function(d){var n=S.filter(function(s){return s.dy===d;}).length;dd+="<button class='ch "+(VD===d?"on":"")+"' onclick=\"VD='"+d+"';SO=null;render();updMap()\" style='font-size:12px'>"+d.slice(0,3)+" <span style='opacity:.35;margin-left:2px'>"+n+"</span></button>";});
-  db.innerHTML=dd;
+  // Day bar - only update the day buttons, not the whole bar
+  var dbBtns=document.getElementById("dayBtns");
+  if(dbBtns){
+    var dd="<button class='ch "+(!VD?"on":"")+"' onclick='VD=null;SO=null;render();updMap()' style='font-size:12px'>All</button>";
+    DAYS.forEach(function(d){var n=S.filter(function(s){return s.dy===d;}).length;dd+="<button class='ch "+(VD===d?"on":"")+"' onclick=\"VD='"+d+"';SO=null;render();updMap()\" style='font-size:12px'>"+d.slice(0,3)+" <span style='opacity:.35;margin-left:2px'>"+n+"</span></button>";});
+    dbBtns.innerHTML=dd;
+  }
 
   // Results
   var rd=document.getElementById("res");
