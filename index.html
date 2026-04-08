@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CleanRoute Utah</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px}
+#map{min-height:400px;background:#f1f5f9}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.inp{background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:12px 16px;color:#1e293b;font-size:15px;width:100%;font-family:inherit;outline:none;transition:border .15s}
+.inp:focus{border-color:#3b82f6}.inp::placeholder{color:#94a3b8}
+.ch{padding:7px 14px;border-radius:8px;border:1px solid #cbd5e1;background:transparent;color:#475569;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .12s;white-space:nowrap}
+.ch:hover{background:#e2e8f0;color:#1e293b}.ch.on{background:#1e293b;color:#fff;border-color:#94a3b8}
+.sb{padding:12px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;transition:all .15s;width:100%}
+.sb:hover{transform:translateY(-1px);box-shadow:0 4px 20px #0ea5e940}.sb:active{transform:scale(.97)}.sb:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:9999;animation:fu .25s ease;box-shadow:0 8px 24px #00000020}
+.lbl{font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block}
+.sd{position:absolute;top:100%;left:0;right:0;background:#e2e8f0;border:1px solid #cbd5e1;border-radius:10px;margin-top:4px;z-index:20;overflow:hidden}
+.si{padding:10px 16px;cursor:pointer;font-size:14px;border-bottom:1px solid #e2e8f0}.si:hover{background:#f1f5f9}
+.oc{padding:16px;border-radius:14px;margin:0 16px 10px;cursor:pointer;background:#f8fafc;border:1.5px solid #e2e8f0;transition:all .15s}
+.oc.act{background:#eff6ff;border-color:#94a3b8}.oc:hover{border-color:#94a3b8}
+.tb{background:#ffffff;border-radius:10px;padding:10px 14px;margin-bottom:10px;border:1px solid #e2e8f0}
+.cb{padding:10px 12px;border-radius:8px;background:#dc262610;border:1px solid #dc262620;margin-top:6px}
+.cpb{padding:8px 12px;border-radius:8px;background:#f59e0b10;border:1px solid #f59e0b20;margin-top:6px;font-size:12px;color:#fbbf24}
+.cfb{margin-top:12px;width:100%;padding:12px;border-radius:10px;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+.rt{font-weight:700;font-size:11px;padding:2px 6px;border-radius:4px}
+.sr{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:2px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px}
+.sr.nw{background:#fef3c7;border-color:#f59e0b40}
+.rb{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;margin-left:6px}
+.fd{font-size:11px;color:#475569;margin-top:4px;line-height:1.6}
+.fd span{display:inline-block;background:#0ea5e908;border:1px solid #cbd5e1;padding:1px 8px;border-radius:4px;margin:1px 4px 1px 0}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="padding:14px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:24px">🧹</span>
+    <div><div style="font-size:16px;font-weight:700">CleanRoute Utah</div><div style="font-size:11px;color:#475569">Scheduling Assistant</div></div>
+  </div>
+  <div style="display:flex;gap:6px">
+    <button id="stog" class="ch" style="font-size:12px" onclick="SS=!SS;render()">📋 Schedule</button>
+    <button class="ch" style="font-size:12px" onclick="doReset()">↻ Reset</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div style="flex:1;display:flex;overflow:hidden">
+  <!-- LEFT -->
+  <div style="width:420px;min-width:340px;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:20px;border-bottom:1px solid #e2e8f0;overflow:auto">
+      <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:#475569">Find the Best Day</div>
+      <!-- City -->
+      <div style="margin-bottom:14px;position:relative">
+        <label class="lbl">Client Address / City</label>
+        <input id="ci" class="inp" placeholder="Type a city name...">
+        <div id="sgd" style="display:none"></div>
+        <div id="tmb" style="margin-top:6px;display:none;align-items:center;gap:6px;font-size:13px;flex-wrap:wrap"></div>
+      </div>
+      <div style="margin-bottom:14px"><label class="lbl">Hours of Cleaning</label><div id="hbar" style="display:flex;flex-wrap:wrap;gap:5px"></div></div>
+      <div style="margin-bottom:14px"><label class="lbl">Recurring Schedule</label><div id="rbar" style="display:flex;gap:6px"></div></div>
+      <div style="margin-bottom:16px"><label class="lbl">Preferred Day</label><div id="pbar" style="display:flex;flex-wrap:wrap;gap:5px"></div></div>
+      <button id="sbtn" class="sb" disabled onclick="doSearch()">🔍 Search Best Schedule</button>
+    </div>
+    <div id="res" style="flex:1;overflow:auto"></div>
+  </div>
+  <!-- RIGHT -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <div id="dbar" style="padding:8px 14px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid #e2e8f0;background:#f8fafc"></div>
+    <div id="map" style="flex:1;min-height:0;height:100%;width:100%"></div>
+    <div id="spnl" style="height:240px;border-top:1px solid #e2e8f0;overflow:auto;padding:14px;background:#f8fafc;display:none"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+var ZD=[
+{id:"z1",cl:"Rhonda Bartlett",ad:"11465 Harvest Rain Ave",ct:"South Jordan",tm:"Salt Lake County",dy:"Friday",st:"12:00 PM",hr:2,rc:"Bi-weekly"},
+{id:"z2",cl:"Cody Bringham",ad:"5328 W Rain Lily Dr",ct:"South Jordan",tm:"Salt Lake County",dy:"Wednesday",st:"9:00 AM",hr:2.25,rc:"Monthly"},
+{id:"z3",cl:"Rebecca Ballard",ad:"8037 S Coolidge St",ct:"Midvale",tm:"Salt Lake County",dy:"Friday",st:"8:00 AM",hr:2,rc:"Monthly"},
+{id:"z4",cl:"Sarah Anderson",ad:"11392 S Silver Pond Dr",ct:"South Jordan",tm:"Salt Lake County",dy:"Monday",st:"11:00 AM",hr:2.25,rc:"Monthly"},
+{id:"z5",cl:"Megan Fields",ad:"11292 S Bingham Rim Rd",ct:"South Jordan",tm:"Salt Lake County",dy:"Saturday",st:"8:00 AM",hr:2.5,rc:"Monthly"},
+{id:"z6",cl:"Susan Cahoon",ad:"11583 Braemar Stone Way",ct:"South Jordan",tm:"Salt Lake County",dy:"Tuesday",st:"11:30 AM",hr:1.75,rc:"Monthly"},
+{id:"z7",cl:"Kate Gallacher",ad:"8917 Sunridge Dr",ct:"Sandy",tm:"Salt Lake County",dy:"Thursday",st:"9:00 AM",hr:2.75,rc:"Monthly"},
+{id:"z8",cl:"Brooke Ogden",ad:"10506 Sage Vista Ln",ct:"Cedar Hills",tm:"Utah County",dy:"Wednesday",st:"3:30 PM",hr:2.25,rc:"Monthly"},
+{id:"z9",cl:"Daniel Von Wallwitz",ad:"4779 W Plainfield Rd",ct:"Herriman",tm:"Salt Lake County",dy:"Thursday",st:"2:15 PM",hr:1,rc:"Weekly"},
+{id:"z10",cl:"Wendy Pendleton",ad:"6087 Elsie Ct",ct:"Taylorsville",tm:"Salt Lake County",dy:"Thursday",st:"9:00 AM",hr:2.5,rc:"Weekly"},
+{id:"z11",cl:"Rachel Ricks",ad:"1794 N Sparrow Way",ct:"Salem",tm:"Utah County",dy:"Friday",st:"12:30 PM",hr:2.25,rc:"Monthly"},
+{id:"z12",cl:"Rachel Ricks",ad:"1794 N Sparrow Way",ct:"Salem",tm:"Utah County",dy:"Monday",st:"1:00 PM",hr:2.25,rc:"Monthly"},
+{id:"z13",cl:"Janis Gillrie",ad:"309 E Red Pine Dr",ct:"Alpine",tm:"Utah County",dy:"Friday",st:"9:00 AM",hr:4.25,rc:"Monthly"},
+{id:"z14",cl:"Lizzy Marquez",ad:"9075 Renaissance Dr",ct:"Cedar Hills",tm:"Utah County",dy:"Monday",st:"11:30 AM",hr:2.5,rc:"Monthly"},
+{id:"z15",cl:"Emily Mecham",ad:"698 W Parkview Dr",ct:"Lehi",tm:"Utah County",dy:"Tuesday",st:"11:00 AM",hr:2.5,rc:"Monthly"},
+{id:"z16",cl:"Emily Mecham",ad:"698 W Parkview Dr",ct:"Lehi",tm:"Utah County",dy:"Tuesday",st:"9:00 AM",hr:2.5,rc:"Monthly"},
+{id:"z17",cl:"Jared Hansen",ad:"3396 W 15000 S",ct:"Riverton",tm:"Salt Lake County",dy:"Tuesday",st:"12:00 PM",hr:2.5,rc:"Monthly"},
+{id:"z18",cl:"Jared Hansen",ad:"3396 W 15000 S",ct:"Riverton",tm:"Salt Lake County",dy:"Thursday",st:"9:00 AM",hr:2,rc:"Monthly"},
+{id:"z19",cl:"Jessica Pace",ad:"12243 High Creek Cir",ct:"Riverton",tm:"Salt Lake County",dy:"Thursday",st:"9:00 AM",hr:2,rc:"Monthly"},
+{id:"z20",cl:"Halie Rosenkrantz",ad:"3572 Crown St",ct:"Taylorsville",tm:"Salt Lake County",dy:"Tuesday",st:"9:00 AM",hr:2.25,rc:"Monthly"},
+{id:"z21",cl:"Zach Schwartz",ad:"2085 Hollywood Ave",ct:"Salt Lake City",tm:"Salt Lake County",dy:"Tuesday",st:"2:15 PM",hr:2,rc:"Monthly"},
+{id:"z22",cl:"Michelle Hiles",ad:"1389 Dragonfly Dr",ct:"Lehi",tm:"Utah County",dy:"Thursday",st:"9:00 AM",hr:2.75,rc:"Monthly"},
+{id:"z23",cl:"Ana Cordova",ad:"464 E Mount Dutton Way",ct:"Eagle Mountain",tm:"Utah County",dy:"Monday",st:"9:00 AM",hr:3,rc:"Monthly"},
+{id:"z24",cl:"Lori Larson",ad:"6672 Aqua Vista Cove",ct:"Salt Lake City",tm:"Salt Lake County",dy:"Monday",st:"10:30 AM",hr:2.75,rc:"Monthly"},
+{id:"z25",cl:"Lori Larson",ad:"6672 Aqua Vista Cove",ct:"Salt Lake City",tm:"Salt Lake County",dy:"Wednesday",st:"12:30 PM",hr:3.25,rc:"Monthly"},
+{id:"z26",cl:"Ryan Orey",ad:"104 E 630 N",ct:"Vineyard",tm:"Utah County",dy:"Tuesday",st:"1:30 PM",hr:2.75,rc:"Monthly"},
+{id:"z27",cl:"Marlayia Olsen",ad:"171 E 700 S",ct:"Lehi",tm:"Salt Lake County",dy:"Monday",st:"11:00 AM",hr:3.5,rc:"Monthly"},
+{id:"z28",cl:"Andrea Minnis",ad:"13848 S Pony Bend Cir",ct:"Bluffdale",tm:"Salt Lake County",dy:"Wednesday",st:"9:00 AM",hr:2.5,rc:"Bi-weekly"},
+{id:"z29",cl:"Michelle Miramontes",ad:"352 E 420 S",ct:"Pleasant Grove",tm:"Utah County",dy:"Wednesday",st:"9:00 AM",hr:3.25,rc:"Monthly"},
+{id:"z30",cl:"Rainy Nwando",ad:"739 W Wild Hyacinth Dr",ct:"Saratoga Springs",tm:"Utah County",dy:"Thursday",st:"9:00 AM",hr:3.25,rc:"Bi-weekly"},
+{id:"z31",cl:"Rainy Nwando",ad:"739 W Wild Hyacinth Dr",ct:"Saratoga Springs",tm:"Utah County",dy:"Tuesday",st:"3:00 PM",hr:2.75,rc:"Bi-weekly"},
+{id:"z32",cl:"Danielle Swarts",ad:"13426 Aintree Ave",ct:"Draper",tm:"Salt Lake County",dy:"Wednesday",st:"12:30 PM",hr:3.75,rc:"Monthly"},
+{id:"z33",cl:"Jennifer Ferrari",ad:"11224 S Haviture Rd",ct:"South Jordan",tm:"Salt Lake County",dy:"Thursday",st:"9:00 AM",hr:2.75,rc:"Monthly"},
+{id:"z34",cl:"Wendy Pendleton",ad:"6087 Elsie Ct",ct:"Taylorsville",tm:"Salt Lake County",dy:"Tuesday",st:"9:00 AM",hr:2.5,rc:"Monthly"},
+{id:"z35",cl:"Megan McGrath",ad:"4418 S Albright Dr",ct:"Holladay",tm:"Salt Lake County",dy:"Wednesday",st:"12:00 PM",hr:2.25,rc:"Monthly"},
+{id:"z36",cl:"Stephanie Dickison",ad:"7770 S Sandra Way",ct:"Midvale",tm:"Salt Lake County",dy:"Wednesday",st:"2:45 PM",hr:2.25,rc:"Monthly"},
+{id:"z37",cl:"Elyse Sorenson",ad:"10889 S Ardonna Way",ct:"Sandy",tm:"Salt Lake County",dy:"Wednesday",st:"12:00 PM",hr:2.5,rc:"Bi-weekly"},
+{id:"z38",cl:"Colleen Hoffmann",ad:"9041 Enchanted Oak Ln",ct:"Sandy",tm:"Salt Lake County",dy:"Saturday",st:"10:00 AM",hr:2.25,rc:"Monthly"},
+{id:"z39",cl:"Stacy Dallin",ad:"1890 N 800 W",ct:"Orem",tm:"Utah County",dy:"Tuesday",st:"9:00 AM",hr:2.25,rc:"Monthly"},
+{id:"z40",cl:"Mia Bracken",ad:"398 S 300 W",ct:"American Fork",tm:"Utah County",dy:"Monday",st:"9:00 AM",hr:3.25,rc:"Monthly"},
+{id:"z41",cl:"Kelli Hicken",ad:"944 S 2400 E",ct:"Springville",tm:"Utah County",dy:"Tuesday",st:"9:00 AM",hr:3.25,rc:"Monthly"},
+{id:"z42",cl:"Mindi Utley",ad:"1044 N 1250 W",ct:"Pleasant Grove",tm:"Utah County",dy:"Wednesday",st:"9:00 AM",hr:3,rc:"Monthly"},
+{id:"z43",cl:"Melissa McCarty",ad:"11077 S Lake Run Rd",ct:"South Jordan",tm:"Salt Lake County",dy:"Tuesday",st:"8:30 AM",hr:2.25,rc:"Bi-weekly"},
+{id:"z44",cl:"Meagan Mickelsen",ad:"1042 Albion Meadow Way",ct:"Bluffdale",tm:"Salt Lake County",dy:"Monday",st:"1:45 PM",hr:2.75,rc:"Monthly"},
+{id:"z45",cl:"Tammy Crain",ad:"3531 E Oakview Dr",ct:"Salt Lake City",tm:"Salt Lake County",dy:"Wednesday",st:"9:00 AM",hr:1.5,rc:"Bi-weekly"},
+{id:"z46",cl:"Talen Hurd",ad:"2472 Marsha Brook Cir",ct:"Salt Lake City",tm:"Salt Lake County",dy:"Thursday",st:"12:15 PM",hr:1.5,rc:"Weekly"},
+{id:"z47",cl:"ReBecca Gunnell",ad:"313 E 900 S",ct:"Payson",tm:"Utah County",dy:"Monday",st:"1:30 PM",hr:2.75,rc:"Monthly"},
+{id:"z48",cl:"Seth Hays",ad:"465 E 630 N",ct:"Lindon",tm:"Utah County",dy:"Monday",st:"9:00 AM",hr:4.5,rc:"Bi-weekly"},
+{id:"z49",cl:"Nikki Martin",ad:"13941 S Jarvie Ln",ct:"Draper",tm:"Salt Lake County",dy:"Monday",st:"1:00 PM",hr:4.25,rc:"Monthly"},
+{id:"z50",cl:"Jentrey Hone",ad:"11568 S Temple Dr",ct:"South Jordan",tm:"Salt Lake County",dy:"Monday",st:"1:30 PM",hr:3.25,rc:"Monthly"},
+{id:"z51",cl:"Dawn Holyoak",ad:"4163 N Fremont Dr",ct:"Lehi",tm:"Utah County",dy:"Thursday",st:"1:00 PM",hr:1.5,rc:"Weekly"},
+{id:"z52",cl:"Sandy Cuddy",ad:"6744 Empress Ln",ct:"West Jordan",tm:"Salt Lake County",dy:"Saturday",st:"1:00 PM",hr:2.5,rc:"Bi-weekly"},
+{id:"z53",cl:"Gin Anderson",ad:"6926 W Highbrow Way",ct:"South Jordan",tm:"Salt Lake County",dy:"Friday",st:"8:45 AM",hr:2,rc:"Bi-weekly"},
+{id:"z54",cl:"Haylee Magill",ad:"15034 Halter Way",ct:"Bluffdale",tm:"Salt Lake County",dy:"Friday",st:"2:30 PM",hr:1.75,rc:"Bi-weekly"},
+{id:"z55",cl:"ReAnne Reimschussel",ad:"25 E 970 N",ct:"Santaquin",tm:"Utah County",dy:"Friday",st:"9:00 AM",hr:2,rc:"Monthly"},
+{id:"z56",cl:"Lauren Harrison",ad:"66 E Manilla Dr",ct:"Draper",tm:"Salt Lake County",dy:"Wednesday",st:"12:00 PM",hr:2.75,rc:"Monthly"},
+{id:"z57",cl:"Sheila Ewell",ad:"1242 Wild Hay Ln",ct:"Draper",tm:"Salt Lake County",dy:"Friday",st:"10:30 AM",hr:1.75,rc:"Monthly"},
+{id:"z58",cl:"Nichole Weber",ad:"4898 W Chilly Peak Dr",ct:"Riverton",tm:"Salt Lake County",dy:"Friday",st:"11:00 AM",hr:2,rc:"Bi-weekly"},
+{id:"z59",cl:"Alli Garrison",ad:"738 W Walden Hills Dr",ct:"Murray",tm:"Salt Lake County",dy:"Saturday",st:"9:00 AM",hr:2,rc:"Bi-weekly"},
+{id:"z60",cl:"Kandice Barrett",ad:"1441 E 1400 N",ct:"Salem",tm:"Utah County",dy:"Wednesday",st:"9:00 AM",hr:2.75,rc:"Monthly"},
+{id:"z61",cl:"Naomi Martinez",ad:"1121 Early Light Way",ct:"Bluffdale",tm:"Salt Lake County",dy:"Tuesday",st:"8:30 AM",hr:3,rc:"Monthly"},
+{id:"z62",cl:"Sabrina Newman",ad:"944 S 250 W",ct:"American Fork",tm:"Utah County",dy:"Wednesday",st:"1:00 PM",hr:3.25,rc:"Monthly"},
+{id:"z63",cl:"Sera Brockway",ad:"6399 W 10150 N",ct:"Highland",tm:"Utah County",dy:"Monday",st:"2:00 PM",hr:2.5,rc:"Monthly"},
+{id:"z64",cl:"Sera Brockway",ad:"6399 W 10150 N",ct:"Highland",tm:"Utah County",dy:"Monday",st:"9:00 AM",hr:2.5,rc:"Monthly"},
+{id:"z65",cl:"Teauna Greenfield",ad:"944 N 790 E",ct:"Lehi",tm:"Utah County",dy:"Thursday",st:"9:00 AM",hr:2,rc:"Monthly"},
+{id:"z66",cl:"Julie Neal",ad:"141 E 190 N",ct:"Vineyard",tm:"Utah County",dy:"Wednesday",st:"3:00 PM",hr:3,rc:"Monthly"},
+{id:"z67",cl:"Joon Hwang",ad:"14913 S Thunder Horse Ln",ct:"Bluffdale",tm:"Salt Lake County",dy:"Friday",st:"2:00 PM",hr:2,rc:"Monthly"},
+{id:"z68",cl:"Blake Allison",ad:"11903 Mount Moran Way",ct:"Herriman",tm:"Salt Lake County",dy:"Tuesday",st:"11:45 AM",hr:2.75,rc:"Monthly"}
+];
+
+var GEO={"South Jordan":[40.5622,-111.9297],"Midvale":[40.6111,-111.8999],"Sandy":[40.565,-111.859],"Cedar Hills":[40.4141,-111.758],"Herriman":[40.5144,-112.033],"Taylorsville":[40.6677,-111.9388],"Saratoga Springs":[40.3494,-111.9044],"Salem":[40.0533,-111.6735],"Alpine":[40.4533,-111.758],"Lehi":[40.3916,-111.8508],"Eagle Mountain":[40.3144,-112.0069],"Salt Lake City":[40.7608,-111.891],"Vineyard":[40.3047,-111.7474],"Riverton":[40.5219,-111.9391],"Bluffdale":[40.4897,-111.9388],"Pleasant Grove":[40.3641,-111.7385],"Draper":[40.5247,-111.8638],"Holladay":[40.6685,-111.8246],"American Fork":[40.3769,-111.7952],"Orem":[40.2969,-111.6946],"Springville":[40.1653,-111.6107],"Lindon":[40.343,-111.7207],"West Jordan":[40.6097,-111.9391],"Payson":[39.9344,-111.7322],"Highland":[40.4272,-111.7952],"Murray":[40.6669,-111.8879],"Provo":[40.2338,-111.6585],"Spanish Fork":[40.1149,-111.6549],"Santaquin":[39.975,-111.785],"Cottonwood Heights":[40.6199,-111.8102],"Millcreek":[40.6886,-111.8246],"West Valley City":[40.6916,-111.9941],"Mapleton":[40.1372,-111.5735]};
+
+var DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+var DI={Sunday:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6};
+var MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var MOLONG=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var HRS=[1,1.5,2,2.5,3,3.5,4,4.5,5,6];
+var RECS=["Weekly","Bi-weekly","Monthly"];
+var TMETA={"Salt Lake County":{c:"#2563eb",i:"\u{1F3D4}\uFE0F",n:"Team Salt Lake"},"Utah County":{c:"#16a34a",i:"\u{1F3E1}",n:"Team Utah"}};
+var UTC=["Cedar Hills","Saratoga Springs","Salem","Alpine","Lehi","Eagle Mountain","Vineyard","Pleasant Grove","American Fork","Orem","Springville","Lindon","Highland","Payson","Provo","Spanish Fork","Santaquin","Mapleton"];
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function hav(a,b,c,d){var R=3959,dl=(c-a)*Math.PI/180,dn=(d-b)*Math.PI/180,x=Math.pow(Math.sin(dl/2),2)+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.pow(Math.sin(dn/2),2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function t2m(t){var p=t.split(" ");var hm=p[0].split(":");var h=+hm[0],m=+hm[1];if(p[1]==="PM"&&h!==12)h+=12;if(p[1]==="AM"&&h===12)h=0;return h*60+m;}
+function m2t(m){var h=Math.floor(m/60),mi=m%60,ap=h>=12?"PM":"AM",h2=h>12?h-12:h===0?12:h;return h2+":"+String(mi).padStart(2,"0")+" "+ap;}
+function gTeam(c){return UTC.indexOf(c)>=0?"Utah County":"Salt Lake County";}
+function maxPD(tm,dy){if(tm==="Utah County")return 2;if(dy==="Saturday")return 1;return 3;}
+function allowDays(tm){return tm==="Utah County"?DAYS.slice(0,5):DAYS;}
+function nextDate(dayName){var t=new Date();t.setHours(0,0,0,0);var tgt=DI[dayName],cur=t.getDay(),diff=tgt-cur;if(diff<=0)diff+=7;var n=new Date(t);n.setDate(t.getDate()+diff);return n;}
+function fmtDate(d){return DAYS[d.getDay()===0?6:d.getDay()-1]+", "+MOLONG[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();}
+function fmtShort(d){return MO[d.getMonth()]+" "+d.getDate();}
+function futDates(first,rc){
+  if(!first)return[];
+  var n=rc==="Weekly"?9:rc==="Bi-weekly"?5:3;
+  var out=[new Date(first)];
+  for(var i=1;i<n;i++){var p=out[out.length-1];var nx=new Date(p);
+    if(rc==="Weekly")nx.setDate(p.getDate()+7);
+    else if(rc==="Bi-weekly")nx.setDate(p.getDate()+14);
+    else nx.setMonth(p.getMonth()+1);
+    out.push(nx);}
+  return out;
+}
+function checkDateConflicts(dates,dayName,team,maxCap){
+  if(!dates||!dates.length)return[];
+  var tj=S.filter(function(s){return s.tm===team&&s.dy===dayName;});
+  var weeklyCount=tj.filter(function(s){return s.rc==="Weekly";}).length;
+  var bwCount=tj.filter(function(s){return s.rc==="Bi-weekly";}).length;
+  var moCount=tj.filter(function(s){return s.rc==="Monthly";}).length;
+  return dates.map(function(d){
+    var wkNum=Math.floor((d.getTime()-dates[0].getTime())/(7*86400000));
+    var est=weeklyCount+Math.ceil(bwCount/2)+Math.ceil(moCount/4);
+    var status=est>=maxCap?"full":est>=maxCap-1?"tight":"open";
+    return{date:d,est:est,max:maxCap,status:status};
+  });
+}
+
+// ══════════════════════════════════════
+
+// Parse city from full address or city name
+function resolveCity(input){
+  if(!input||input.length<2)return null;
+  var lo=input.toLowerCase().trim();
+  var cs=Object.keys(GEO);
+  // 1. Exact match
+  for(var i=0;i<cs.length;i++){if(cs[i].toLowerCase()===lo)return cs[i];}
+  // 2. Sort by name length descending so "South Jordan" matches before "Jordan", "Salt Lake City" before "Salt Lake"
+  var sorted=cs.slice().sort(function(a,b){return b.length-a.length;});
+  // 3. Check if any city name appears in the input string
+  for(var i=0;i<sorted.length;i++){
+    var clo=sorted[i].toLowerCase();
+    // Match as word boundary: check the city appears in the text
+    var idx=lo.indexOf(clo);
+    if(idx>=0){
+      // Verify it's not part of a longer word (basic boundary check)
+      var before=idx>0?lo.charAt(idx-1):" ";
+      var after=idx+clo.length<lo.length?lo.charAt(idx+clo.length):" ";
+      if(/[\s,.]/.test(before)||idx===0){
+        if(/[\s,.]/.test(after)||idx+clo.length===lo.length){
+          return sorted[i];
+        }
+      }
+    }
+  }
+  // 4. Check zip codes
+  var zipMap={"84009":"South Jordan","84095":"South Jordan","84047":"Midvale","84093":"Sandy","84070":"Sandy","84094":"Sandy","84096":"Herriman","84123":"Taylorsville","84129":"Taylorsville","84045":"Saratoga Springs","84660":"Salem","84004":"Alpine","84043":"Lehi","84048":"Lehi","84005":"Eagle Mountain","84108":"Salt Lake City","84121":"Salt Lake City","84102":"Salt Lake City","84124":"Salt Lake City","84059":"Vineyard","84065":"Bluffdale","84062":"Pleasant Grove","84020":"Draper","84003":"American Fork","84057":"Orem","84663":"Springville","84042":"Lindon","84081":"West Jordan","84651":"Payson","84107":"Murray","84653":"Salem","84655":"Santaquin","84060":"Provo"};
+  var zipMatch=lo.match(/\b(84\d{3})\b/);
+  if(zipMatch&&zipMap[zipMatch[1]])return zipMap[zipMatch[1]];
+  return null;
+}
+
+// STATE
+// ══════════════════════════════════════
+var S=[],map=null,layers=[],SO=null,VD=null,SS=false,driveInfo={};
+var FC="",FH=2.5,FR="Bi-weekly",FP="Any Day",RES=null,RV=null;
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+function boot(){
+  try{var sv=localStorage.getItem("cr6");if(sv)S=JSON.parse(sv);} catch(e){}
+  if(!S.length)doReset(true);
+  render();
+  if(window.google&&window.google.maps){initMap();}else{window._bootDone=true;}
+}
+
+function doReset(silent){
+  S=[];
+  ZD.forEach(function(z){
+    var g=GEO[z.ct];if(!g)return;
+    S.push({id:z.id,cl:z.cl,ad:z.ad,ct:z.ct,tm:z.tm,dy:z.dy,st:z.st,hr:z.hr,rc:z.rc,
+      lat:g[0]+(Math.random()-.5)*.008,lng:g[1]+(Math.random()-.5)*.008});
+  });
+  sv();RES=null;SO=null;
+  if(!silent)toast("Reset to ZenMaid data");
+  render();updMap();
+}
+function sv(){try{localStorage.setItem("cr6",JSON.stringify(S));}catch(e){}}
+
+// ══════════════════════════════════════
+// MAP (Leaflet)
+// ══════════════════════════════════════
+function initMap(){
+  try{
+    map=new google.maps.Map(document.getElementById("map"),{
+      center:{lat:40.45,lng:-111.85},zoom:10,
+      disableDefaultUI:true,zoomControl:true,
+      zoomControlOptions:{position:google.maps.ControlPosition.RIGHT_BOTTOM},
+      styles:[
+        {featureType:"poi",stylers:[{visibility:"off"}]},
+        {featureType:"transit",stylers:[{visibility:"off"}]}
+      ]
+    });
+    new google.maps.Polyline({path:[{lat:40.49,lng:-112.3},{lat:40.49,lng:-111.4}],strokeColor:"#f59e0b",strokeOpacity:0.5,strokeWeight:1.5,map:map});
+    updMap();
+  }catch(e){console.error("Map init error:",e);}
+}
+
+function updMap(){
+  if(!map)return;
+  layers.forEach(function(l){try{if(l.setMap)l.setMap(null);else if(l.remove)l.remove();}catch(e){}});layers=[];
+
+  var f=S.filter(function(s){return s.lat&&(!VD||s.dy===VD);});
+
+  f.forEach(function(s){
+    var t=TMETA[s.tm]||{c:"#666"};
+    var mk=new google.maps.Marker({position:{lat:s.lat,lng:s.lng},map:map,
+      icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:t.c,fillOpacity:0.8,strokeColor:"#000",strokeWeight:1,scale:7},
+      title:s.cl+" - "+s.dy+" "+s.st});
+    var iw=new google.maps.InfoWindow({content:"<div style='font-family:system-ui;font-size:13px;color:#333'><b>"+s.cl+"</b><br>"+s.ad+", "+s.ct+"<br>"+s.dy+" "+s.st+" ("+s.hr+"h)<br>"+s.rc+"</div>"});
+    mk.addListener("click",function(){iw.open(map,mk);});
+    layers.push(mk);
+  });
+
+  if(VD){["Salt Lake County","Utah County"].forEach(function(tn){
+    var dj=f.filter(function(s){return s.tm===tn;}).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+    if(dj.length>1){
+      var waypts=[];
+      for(var wi=1;wi<dj.length-1;wi++){waypts.push({location:{lat:dj[wi].lat,lng:dj[wi].lng},stopover:true});}
+      var dsvc=new google.maps.DirectionsService();
+      dsvc.route({
+        origin:{lat:dj[0].lat,lng:dj[0].lng},
+        destination:{lat:dj[dj.length-1].lat,lng:dj[dj.length-1].lng},
+        waypoints:waypts.slice(0,23),
+        travelMode:google.maps.TravelMode.DRIVING
+      },function(result,status){
+        if(status==="OK"){
+          var dr=new google.maps.DirectionsRenderer({
+            map:map,directions:result,suppressMarkers:true,preserveViewport:true,
+            polylineOptions:{strokeColor:(TMETA[tn]||{}).c||"#666",strokeOpacity:0.35,strokeWeight:2}
+          });
+          layers.push(dr);
+        } else {
+          var ln=new google.maps.Polyline({path:dj.map(function(j){return{lat:j.lat,lng:j.lng};}),
+            strokeColor:(TMETA[tn]||{}).c||"#666",strokeOpacity:0.3,strokeWeight:2,map:map});
+          layers.push(ln);
+        }
+      });
+    }
+  });}
+
+  var pin=RV?GEO[RV]:null;
+  if(pin){
+    var pm=new google.maps.Marker({position:{lat:pin[0],lng:pin[1]},map:map,
+      icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:"#f59e0b",fillOpacity:1,strokeColor:"#fff",strokeWeight:3,scale:11},
+      title:"NEW CLIENT",zIndex:999});
+    layers.push(pm);
+    var rg=new google.maps.Circle({center:{lat:pin[0],lng:pin[1]},radius:1200,strokeColor:"#f59e0b",strokeOpacity:0.3,strokeWeight:2,fillOpacity:0,map:map});
+    layers.push(rg);
+  }
+
+  if(SO&&pin){
+    var bounds=new google.maps.LatLngBounds();
+    bounds.extend({lat:pin[0],lng:pin[1]});
+    var ds=new google.maps.DirectionsService();
+
+    if(SO.bf&&SO.bf.la){
+      bounds.extend({lat:SO.bf.la,lng:SO.bf.ln});
+      drawRoute(ds,{lat:SO.bf.la,lng:SO.bf.ln},{lat:pin[0],lng:pin[1]},"#22d3ee","before");
+    }
+    if(SO.af&&SO.af.la){
+      bounds.extend({lat:SO.af.la,lng:SO.af.ln});
+      drawRoute(ds,{lat:pin[0],lng:pin[1]},{lat:SO.af.la,lng:SO.af.ln},"#c084fc","after");
+    }
+    if(!SO.bf&&!SO.af&&SO.nr&&SO.nr.la){
+      bounds.extend({lat:SO.nr.la,lng:SO.nr.ln});
+      drawRoute(ds,{lat:pin[0],lng:pin[1]},{lat:SO.nr.la,lng:SO.nr.ln},"#34d399","nearest");
+    }
+    if(!bounds.isEmpty())map.fitBounds(bounds,{top:60,bottom:60,left:60,right:60});
+  }
+}
+
+function addMiLbl(lat,lng,text,color){
+  var ov=new google.maps.OverlayView();
+  ov.onAdd=function(){
+    var div=document.createElement("div");
+    div.style.cssText="background:#f1f5f9ee;color:"+color+";padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid "+color+"40;font-family:system-ui;position:absolute;pointer-events:none";
+    div.textContent=text;this.div_=div;this.getPanes().overlayLayer.appendChild(div);
+  };
+  ov.draw=function(){
+    var p=this.getProjection().fromLatLngToDivPixel(new google.maps.LatLng(lat,lng));
+    if(p&&this.div_){this.div_.style.left=(p.x-35)+"px";this.div_.style.top=(p.y-11)+"px";}
+  };
+  ov.onRemove=function(){if(this.div_){this.div_.parentNode.removeChild(this.div_);this.div_=null;}};
+  ov.setMap(map);layers.push(ov);
+}
+
+// ══════════════════════════════════════
+function drawRoute(svc,from,to,color,tag){
+  svc.route({
+    origin:from,destination:to,
+    travelMode:google.maps.TravelMode.DRIVING
+  },function(result,status){
+    if(status==="OK"&&result.routes.length>0){
+      var dr=new google.maps.DirectionsRenderer({
+        map:map,directions:result,suppressMarkers:true,preserveViewport:true,
+        polylineOptions:{strokeColor:color,strokeOpacity:0.85,strokeWeight:3}
+      });
+      layers.push(dr);
+      var leg=result.routes[0].legs[0];
+      var distText=leg.distance.text;
+      var durText=leg.duration.text;
+      var midIdx=Math.floor(result.routes[0].overview_path.length/2);
+      var midPt=result.routes[0].overview_path[midIdx];
+      addMiLbl(midPt.lat(),midPt.lng(),distText+" \u00B7 "+durText,color);
+      driveInfo[tag]={dist:distText,dur:durText};
+      var el=document.getElementById("driveStats");
+      if(el){
+        var h2="";
+        if(driveInfo["before"])h2+="<div style='display:flex;align-items:center;gap:6px;font-size:12px'><span style='color:#22d3ee'>\u2190</span> From prev: <b style='color:#22d3ee'>"+driveInfo["before"].dist+"</b> <span style='color:#475569'>"+driveInfo["before"].dur+"</span></div>";
+        if(driveInfo["after"])h2+="<div style='display:flex;align-items:center;gap:6px;font-size:12px'><span style='color:#c084fc'>\u2192</span> To next: <b style='color:#c084fc'>"+driveInfo["after"].dist+"</b> <span style='color:#475569'>"+driveInfo["after"].dur+"</span></div>";
+        if(driveInfo["nearest"])h2+="<div style='display:flex;align-items:center;gap:6px;font-size:12px'><span style='color:#34d399'>\u2022</span> Nearest: <b style='color:#34d399'>"+driveInfo["nearest"].dist+"</b> <span style='color:#475569'>"+driveInfo["nearest"].dur+"</span></div>";
+        el.innerHTML=h2;
+      }
+    } else {
+      var ln=new google.maps.Polyline({path:[from,to],strokeColor:color,strokeOpacity:0.6,strokeWeight:2,map:map,icons:[{icon:{path:"M 0,-1 0,1",strokeOpacity:0.5,scale:3},offset:"0",repeat:"10px"}]});
+      layers.push(ln);
+    }
+  });
+}
+
+// ENGINE
+// ══════════════════════════════════════
+function findSlots(city,hrs,rec,pref){
+  var g=GEO[city];if(!g)return[];
+  var tm=gTeam(city);var al=allowDays(tm);
+  var tj=S.filter(function(s){return s.tm===tm;});
+  var dur=hrs*60,buf=30,out=[];
+
+  // Generate all candidate dates for next 8 weeks
+  var today=new Date();today.setHours(0,0,0,0);
+  var candidates=[];
+  for(var d=1;d<=60;d++){
+    var dt=new Date(today);dt.setDate(today.getDate()+d);
+    var dayIdx=dt.getDay();
+    var dayName=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][dayIdx];
+    if(al.indexOf(dayName)<0)continue;
+    if(pref!=="Any Day"&&dayName!==pref)continue;
+    candidates.push({date:dt,dayName:dayName});
+  }
+
+  candidates.forEach(function(cand){
+    var day=cand.dayName;
+    var dt=cand.date;
+    var mx=maxPD(tm,day);
+
+    // Figure out which recurring appointments are active on this specific date
+    var weekNum=Math.floor((dt.getTime()-today.getTime())/(7*86400000));
+    var activeDJ=tj.filter(function(s){
+      if(s.dy!==day||!s.lat)return false;
+      if(s.rc==="Weekly")return true;
+      if(s.rc==="Bi-weekly")return weekNum%2===0;
+      if(s.rc==="Monthly"){
+        // Active roughly once per 4 weeks
+        return weekNum%4===0;
+      }
+      return true; // one-time: include for safety
+    }).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+
+    var cnt=activeDJ.length;
+    var full=cnt>=mx;
+    var bk=activeDJ.map(function(j){return{s:t2m(j.st),e:t2m(j.st)+j.hr*60,la:j.lat,ln:j.lng,cl:j.cl,rc:j.rc};});
+
+    // Find open windows
+    var wins=[];var cur=480;
+    for(var i=0;i<bk.length;i++){if(cur+dur<=bk[i].s)wins.push({s:cur,e:cur+dur});cur=Math.max(cur,bk[i].e+buf);}
+    if(cur+dur<=1020)wins.push({s:cur,e:cur+dur});
+
+    // Score each window (take best window per date only)
+    var bestWin=null;var bestSc=-1;
+    wins.forEach(function(w){
+      var ds=activeDJ.map(function(j){return{d:hav(g[0],g[1],j.lat,j.lng),cl:j.cl,la:j.lat,ln:j.lng};});
+      var avg=ds.length?ds.reduce(function(a,b){return a+b.d;},0)/ds.length:99;
+      var nr=ds.length?ds.reduce(function(a,b){return a.d<b.d?a:b;}):null;
+      var bf=null;for(var i=bk.length-1;i>=0;i--){if(bk[i].e<=w.s){bf=bk[i];break;}}
+      var af=null;for(var i=0;i<bk.length;i++){if(bk[i].s>=w.e){af=bk[i];break;}}
+      var dB=bf?hav(g[0],g[1],bf.la,bf.ln):null;
+      var dA=af?hav(g[0],g[1],af.la,af.ln):null;
+      var cf=[];
+      if(rec!=="One-time"){bk.forEach(function(b){if(b.rc==="One-time")return;if(w.s<b.e+buf&&w.e+buf>b.s&&(rec==="Weekly"||b.rc==="Weekly"||rec===b.rc))cf.push(b);});}
+
+      var sc=100;
+      if(ds.length){sc-=avg*3.5;sc-=(nr?nr.d:0)*4;}else sc-=15;
+      if(dB!==null)sc-=dB*2;if(dA!==null)sc-=dA*2;
+      if(cnt>5)sc-=8;sc-=35*cf.length;if(full)sc-=40;
+      sc=Math.max(0,Math.min(100,Math.round(sc)));
+
+      if(sc>bestSc){bestSc=sc;bestWin={w:w,sc:sc,nr:nr,bf:bf,af:af,dB:dB,dA:dA,cf:cf};}
+    });
+
+    if(!bestWin)return;
+    var w=bestWin.w;
+    var fds=futDates(dt,rec);
+    var fdc=checkDateConflicts(fds,day,tm,mx);
+
+    out.push({
+      dy:day,tm:tm,st:m2t(w.s),et:m2t(w.e),sc:bestWin.sc,
+      nr:bestWin.nr?{cl:bestWin.nr.cl,d:bestWin.nr.d.toFixed(1),la:bestWin.nr.la,ln:bestWin.nr.ln}:null,
+      bf:bestWin.bf?{cl:bestWin.bf.cl,d:bestWin.dB?bestWin.dB.toFixed(1):"?",la:bestWin.bf.la,ln:bestWin.bf.ln}:null,
+      af:bestWin.af?{cl:bestWin.af.cl,d:bestWin.dA?bestWin.dA.toFixed(1):"?",la:bestWin.af.la,ln:bestWin.af.ln}:null,
+      conf:bestWin.cf,cnt:cnt,mx:mx,full:full,fd:dt,fds:fds,fdc:fdc
+    });
+  });
+
+  // Sort by score, then deduplicate: keep best per day-of-week, but allow multiple dates
+  out.sort(function(a,b){return b.sc-a.sc;});
+
+  // Remove duplicate day+time combos (keep the soonest date for each unique slot)
+  var seen={};
+  var filtered=[];
+  out.forEach(function(o){
+    var key=o.dy+"|"+o.st+"|"+o.cnt;
+    if(!seen[key]){seen[key]=true;filtered.push(o);}
+  });
+
+  return filtered;
+}
+
+// ══════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════
+function doSearch(){
+  RV=resolveCity(FC);
+  if(!RV){toast("Enter a valid city","e");return;}
+  RES=findSlots(RV,FH,FR,FP);SO=null;
+  if(RES&&RES.length>0){VD=RES[0].dy;SO=RES[0];}
+  else toast("No windows found"+(FP!=="Any Day"?". Try Any Day.":""),"e");
+  render();updMap();
+}
+function selOpt(i){driveInfo={};SO=window._R[i];VD=SO.dy;render();updMap();}
+function cfmOpt(i){
+  var o=window._R[i];var g=GEO[RV];
+  S.push({id:"n"+Date.now(),cl:"NEW: "+RV,ad:"New client",ct:RV,tm:o.tm,dy:o.dy,st:o.st,hr:FH,rc:FR,lat:g[0]+(Math.random()-.5)*.006,lng:g[1]+(Math.random()-.5)*.006});
+  sv();RES=null;SO=null;FC="";RV=null;toast("Added "+o.dy+" at "+o.st);render();updMap();
+}
+function toast(m,t){var d=document.createElement("div");d.className="toast";d.style.background=t==="e"?"#dc2626":"#059669";d.style.color="#fff";d.textContent=m;document.body.appendChild(d);setTimeout(function(){d.remove();},3000);}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function render(){
+  var cs=Object.keys(GEO).sort();
+  RV=resolveCity(FC);
+  var tm4=RV?gTeam(RV):null;
+  var lo=FC.toLowerCase().trim();
+  var sg=[];
+  if(FC.length>=1&&!RV){
+    // Try matching partial words from input against city names
+    var words=lo.replace(/[,]/g," ").split(/\s+/);
+    for(var w=0;w<words.length;w++){
+      if(words[w].length<2)continue;
+      for(var ci2=0;ci2<cs.length;ci2++){
+        if(cs[ci2].toLowerCase().indexOf(words[w])>=0&&sg.indexOf(cs[ci2])<0)sg.push(cs[ci2]);
+      }
+    }
+    sg=sg.slice(0,6);
+  }
+
+  // Input sync
+  var ci=document.getElementById("ci");
+  if(ci&&ci!==document.activeElement)ci.value=FC;
+
+  // Team badge
+  var tb=document.getElementById("tmb");
+  if(RV&&tm4){
+    var ti=TMETA[tm4];var ru=tm4==="Utah County"?"Mon-Fri · Max 2/day":"Mon-Sat · Max 3/day · Sat max 1";
+    tb.innerHTML="<span style='color:"+ti.c+"'>"+ti.i+" "+ti.n+"</span> <span style='color:#94a3b8'>·</span> <span style='color:#475569'>"+tm4+"</span><span class='rb' style='background:"+ti.c+"15;color:"+ti.c+"'>"+ru+"</span>";
+    tb.style.display="flex";
+  } else if(tb) tb.style.display="none";
+
+  // Suggestions
+  var sd=document.getElementById("sgd");
+  if(sg.length>0){sd.className="sd";sd.style.display="block";var sh="";sg.forEach(function(c){sh+="<div class='si' onclick=\"FC='"+c+"';render();\">"+c+"</div>";});sd.innerHTML=sh;}
+  else{sd.style.display="none";}
+
+  // Hours
+  var hb=document.getElementById("hbar");
+  var hh="";HRS.forEach(function(h){hh+="<button class='ch "+(FH===h?"on":"")+"' style='"+(FH===h?"border-color:#3b82f6;color:#38bdf8":"")+"' onclick='FH="+h+";render();'>"+h+"h</button>";});hb.innerHTML=hh;
+
+  // Recurrence
+  var rb=document.getElementById("rbar");
+  var rr="";RECS.forEach(function(r){rr+="<button class='ch "+(FR===r?"on":"")+"' style='flex:1;"+(FR===r?"border-color:#a78bfa;color:#c4b5fd":"")+"' onclick=\"FR='"+r+"';render();\">"+r+"</button>";});rb.innerHTML=rr;
+
+  // Preferred day
+  if(tm4==="Utah County"&&FP==="Saturday")FP="Any Day";
+  var pds=["Any Day"].concat(tm4==="Utah County"?DAYS.slice(0,5):DAYS);
+  var pb=document.getElementById("pbar");
+  var pp="";pds.forEach(function(d){var on=FP===d;pp+="<button class='ch "+(on?"on":"")+"' style='"+(on?"border-color:#10b981;color:#34d399":"")+"' onclick=\"FP='"+d+"';render();\">"+d+(d==="Any Day"?" ✦":"")+"</button>";});pb.innerHTML=pp;
+
+  // Search btn
+  document.getElementById("sbtn").disabled=!RV;
+
+  // Toggle
+  var stg=document.getElementById("stog");stg.textContent="\u{1F4CB} "+(SS?"Hide":"Show")+" ("+S.length+")";stg.className="ch "+(SS?"on":"");
+
+  // Day bar
+  var db=document.getElementById("dbar");
+  var dd="<button class='ch "+(!VD?"on":"")+"' onclick='VD=null;SO=null;render();updMap()' style='font-size:12px'>All</button>";
+  DAYS.forEach(function(d){var n=S.filter(function(s){return s.dy===d;}).length;dd+="<button class='ch "+(VD===d?"on":"")+"' onclick=\"VD='"+d+"';SO=null;render();updMap()\" style='font-size:12px'>"+d.slice(0,3)+" <span style='opacity:.35;margin-left:2px'>"+n+"</span></button>";});
+  db.innerHTML=dd;
+
+  // Results
+  var rd=document.getElementById("res");
+  if(!RES||!RES.length){rd.innerHTML="";return;}
+  if(RES.length===0){rd.innerHTML="<div style='padding:24px;text-align:center;color:#475569;font-size:13px'>No windows found."+(FP!=="Any Day"?" Try Any Day.":"")+"</div>";return;}
+  window._R=RES;
+
+  var h="<div style='font-size:12px;font-weight:700;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;padding:16px 16px 0'>Top 3 Options</div>";
+
+  RES.slice(0,3).forEach(function(o,i){
+    var act=SO===o,scC=o.sc>=70?"#34d399":o.sc>=45?"#fbbf24":"#f87171",hc=(o.cf&&o.cf.length>0);
+
+    h+="<div class='oc "+(act?"act":"")+"' onclick='selOpt("+i+")' style='animation:fu .3s ease "+i*.06+"s both'>";
+
+    // Date
+    h+="<div style='font-size:12px;color:#38bdf8;font-weight:600;margin-bottom:4px'>\u{1F4C5} "+fmtDate(o.fd)+"</div>";
+
+    // Rank + score
+    h+="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'>";
+    h+="<div style='display:flex;align-items:center;gap:8px'>";
+    h+="<span style='width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:"+(i===0?"#059669":i===1?"#0ea5e9":"#6366f1")+";color:#fff'>"+(i+1)+"</span>";
+    h+="<div><span style='font-weight:700;font-size:16px'>"+o.dy+"</span>";
+    if(hc)h+="<span style='margin-left:8px;font-size:12px;color:#f87171'>\u26A0 Conflict</span>";
+    if(o.full)h+="<span style='margin-left:8px;font-size:12px;color:#fbbf24'>\u26A0 Full</span>";
+    h+="</div></div>";
+    h+="<div style='font-size:18px;font-weight:800;color:"+scC+"'>"+o.sc+"<span style='font-size:11px;font-weight:400;color:#475569'>%</span></div></div>";
+
+    // Time
+    h+="<div class='tb'><div style='font-size:15px;font-weight:600'>"+o.st+" \u2192 "+o.et+"</div>";
+    h+="<div style='font-size:12px;color:#475569;margin-top:2px'>"+FH+"h block \u00B7 "+o.cnt+"/"+o.mx+" slots used</div></div>";
+
+    // Recurring dates with conflict status
+    h+="<div style='margin-bottom:8px'><div style='font-size:11px;color:#475569;font-weight:600;margin-bottom:6px'>Recurring Schedule (next "+(o.fds?o.fds.length:0)+" dates):</div>";
+    h+="<div style='display:flex;flex-wrap:wrap;gap:4px'>";
+    (o.fds||[]).forEach(function(d,di){
+      var fc=o.fdc&&o.fdc[di]?o.fdc[di]:null;
+      var bg,clr,icon;
+      if(fc&&fc.status==="full"){bg="#dc262615";clr="#f87171";icon="\u26A0";}
+      else if(fc&&fc.status==="tight"){bg="#f59e0b12";clr="#fbbf24";icon="\u25CB";}
+      else{bg="#05966910";clr="#34d399";icon="\u2713";}
+      h+="<div style='background:"+bg+";border:1px solid "+clr+"20;border-radius:6px;padding:4px 8px;font-size:11px;line-height:1.3'>";
+      h+="<div style='color:"+clr+";font-weight:600'>"+icon+" "+fmtShort(d)+"</div>";
+      if(fc)h+="<div style='color:#475569;font-size:10px'>"+fc.est+"/"+fc.max+" booked</div>";
+      h+="</div>";
+    });
+    h+="</div></div>";
+
+    // Route
+    h+="<div style='display:flex;align-items:center;gap:6px;font-size:12px;margin:8px 0;flex-wrap:wrap'>";
+    if(o.bf)h+="<span style='color:#475569;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+o.bf.cl+"</span><span class='rt' style='color:#22d3ee;background:#22d3ee15'>"+o.bf.d+" mi</span><span style='color:#94a3b8'>\u2192</span>";
+    h+="<span class='rt' style='color:#f59e0b;background:#f59e0b15'>\u2605 NEW</span>";
+    if(o.af)h+="<span style='color:#94a3b8'>\u2192</span><span class='rt' style='color:#c084fc;background:#c084fc15'>"+o.af.d+" mi</span><span style='color:#475569;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+o.af.cl+"</span>";
+    h+="</div>";
+
+    if(o.nr)h+="<div style='font-size:12px;color:#475569;margin-bottom:6px'>Nearest: <span style='color:#475569'>"+o.nr.cl+"</span> ("+o.nr.d+" mi)</div>";
+
+    // Drive time stats (populated async by Directions API)
+    if(act)h+="<div id='driveStats' style='background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;margin-bottom:6px;min-height:20px'></div>";
+
+    if(o.full){var cm=o.tm==="Utah County"?"2/day Utah County limit":(o.dy==="Saturday"?"1/Saturday Salt Lake limit":"3/day Salt Lake limit");
+      h+="<div class='cpb'><b>\u26A0 Day at capacity</b> ("+o.cnt+"/"+o.mx+"). Exceeds "+cm+".</div>";}
+
+    if(hc){h+="<div class='cb'><div style='font-size:12px;font-weight:700;color:#f87171;margin-bottom:4px'>\u26A0 Recurring Conflict</div>";
+      (o.cf||[]).forEach(function(c){h+="<div style='font-size:12px;color:#fca5a5'>Overlaps with <b>"+c.cl+"</b> ("+c.rc+", "+m2t(c.s)+"-"+m2t(c.e)+")</div>";});
+      h+="<div style='font-size:11px;color:#f8717180;margin-top:4px'>Pick a different day to avoid overlap.</div></div>";}
+
+    if(act){
+      var bg=hc||o.full?"linear-gradient(135deg,#92400e,#b45309)":"linear-gradient(135deg,#059669,#10b981)";
+      var tx=o.full?"Add Anyway (Over Capacity)":hc?"Add Anyway (Conflict)":"\u2713 Confirm & Add to Schedule";
+      h+="<button class='cfb' style='background:"+bg+"' onclick='event.stopPropagation();cfmOpt("+i+")'>"+tx+"</button>";}
+    h+="</div>";
+  });
+
+  if(RES&&RES.length>3){
+    h+="<details style='margin:0 16px'><summary style='font-size:12px;color:#475569;cursor:pointer;padding:6px 0'>"+(RES.length-3)+" more options</summary>";
+    RES.slice(3,8).forEach(function(o,i){var idx=i+3;
+      h+="<div style='padding:10px 12px;border-radius:8px;margin-bottom:4px;background:#f8fafc;border:1px solid #e2e8f0;cursor:pointer;font-size:13px' onclick='selOpt("+idx+")'>";
+      h+="<div style='font-size:11px;color:#38bdf8;margin-bottom:2px'>"+fmtDate(o.fd)+"</div>";
+      h+="<div style='display:flex;justify-content:space-between;align-items:center'>";
+      h+="<div><span style='font-weight:600'>"+o.st+"-"+o.et+"</span><span style='color:#475569;margin-left:8px;font-size:11px'>"+o.cnt+"/"+o.mx+"</span>";
+      if(o.cf&&o.cf.length>0)h+="<span style='color:#f87171;margin-left:6px;font-size:11px'>\u26A0</span>";
+      if(o.full)h+="<span style='color:#fbbf24;margin-left:4px;font-size:11px'>FULL</span>";
+      h+="</div><span style='color:"+(o.sc>=60?"#34d399":"#fbbf24")+";font-weight:700'>"+o.sc+"%</span></div></div>";
+    });h+="</details>";}
+  rd.innerHTML=h;
+
+  // Schedule panel
+  var sp=document.getElementById("spnl");sp.style.display=SS?"block":"none";
+  if(SS){
+    var sf=DAYS.filter(function(d){return!VD||d===VD;});
+    var sh="<div style='font-size:12px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase'>"+(VD||"All Days")+" \u00B7 "+S.filter(function(s){return!VD||s.dy===VD;}).length+" jobs</div>";
+    sf.forEach(function(day){
+      var dj=S.filter(function(s){return s.dy===day;}).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+      if(!dj.length)return;
+      if(!VD)sh+="<div style='font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px'>"+day+" ("+dj.length+"/"+maxPD(dj[0].tm,day)+")</div>";
+      dj.forEach(function(s){var t=TMETA[s.tm]||{c:"#666",i:"?"};var nw=s.id&&s.id.charAt(0)==="n";
+        sh+="<div class='sr "+(nw?"nw":"")+"'><span style='color:"+t.c+"'>"+t.i+"</span><span style='font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+s.cl+"</span><span style='color:#475569'>"+s.ct+"</span><span style='color:#94a3b8'>"+s.st+"</span><span style='color:#94a3b8'>"+s.hr+"h</span><span style='color:#94a3b8;font-size:11px'>"+s.rc+"</span></div>";});
+      sh+="<div style='margin-bottom:10px'></div>";
+    });sp.innerHTML=sh;
+  }
+}
+
+// ══════════════════════════════════════
+// EVENT WIRING
+// ══════════════════════════════════════
+document.addEventListener("DOMContentLoaded",function(){
+  var ci=document.getElementById("ci");
+  ci.addEventListener("input",function(){FC=this.value;RV=null;RES=null;SO=null;render();});
+  ci.addEventListener("keydown",function(e){if(e.key==="Enter")doSearch();});
+  boot();
+});
+</script>
+<script>
+function gmReady(){
+  try{initMap();document.getElementById("map").style.background="#0c0f1a";}
+  catch(e){document.getElementById("map").innerHTML="<div style='padding:40px;color:#f87171;font-size:14px'>Map error: "+e.message+"</div>";console.error(e);}
+}
+window.gm_authFailure=function(){document.getElementById("map").innerHTML="<div style='padding:40px;color:#f87171;font-size:14px'>Google Maps API key error. Check billing or API restrictions in Google Cloud Console.</div>";};
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDMqjw4kLrqWfHKpP7V2GRdaOU99JUs5o8&callback=gmReady" async defer></script>
+</body>
+</html>
