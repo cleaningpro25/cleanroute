@@ -52,11 +52,11 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 .cal-time{padding:4px 8px;font-size:11px;color:#94a3b8;text-align:right;border-right:1px solid #e2e8f0;height:60px;background:#fff}
 .cal-cell{border-right:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;height:60px;position:relative;background:#fff}
 .cal-cell:hover{background:#f8fafc}
-.cal-appt{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 6px;font-size:11px;overflow:hidden;cursor:default;z-index:1;border-left:3px solid}
-.cal-appt-sl{background:#dbeafe;border-left-color:#2563eb;color:#1e3a5f}
-.cal-appt-ut{background:#dcfce7;border-left-color:#16a34a;color:#14532d}
+.cal-appt{position:absolute;border-radius:6px;padding:4px 6px;font-size:11px;overflow:hidden;cursor:default;z-index:1;border-left:3px solid}
+.cal-appt-sl{background:#2563eb;border-left-color:#1d4ed8;color:#fff}
+.cal-appt-ut{background:#16a34a;border-left-color:#15803d;color:#fff}
 .cal-appt b{font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-appt span{font-size:10px;opacity:0.7;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-appt span{font-size:10px;opacity:0.85;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -83,17 +83,21 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 </div>
 
 
+<div id="app" style="height:100vh;display:flex;flex-direction:column;display:none">
+
 <!-- HEADER -->
 <div style="padding:14px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
   <div style="display:flex;align-items:center;gap:10px">
     <span style="font-size:24px">🧹</span>
     <div><div style="font-size:16px;font-weight:700">CleanRoute Utah</div><div style="font-size:11px;color:#475569">Scheduling Assistant</div></div>
   </div>
-  <div style="display:flex;gap:6px">
-    <button id="stog" class="ch" style="font-size:12px" onclick="SS=!SS;render()">📋 Schedule</button>
-    <button class="ch" style="font-size:12px" onclick="doReset()">↻ Reset</button>
+  <div style="display:flex;gap:6px;align-items:center">
+        <button id="tabDash" class="ch on" style="font-size:13px;padding:9px 20px" onclick="switchTab('dashboard')">📊 Dashboard</button>
+        <button id="tabCal" class="ch" style="font-size:13px;padding:9px 20px" onclick="switchTab('calendar')">📅 Calendar</button>
+        <button id="tabSched" class="ch" style="font-size:13px;padding:9px 20px" onclick="switchTab('scheduler')">🔍 Search</button>
+        <div style="width:1px;height:20px;background:#cbd5e1;margin:0 4px"></div>
         <button class="ch" style="font-size:12px;color:#dc2626;border-color:#fecaca" onclick="doLogout()">↪ Sign Out</button>
-  </div>
+      </div>
 </div>
 
 <!-- MAIN -->
@@ -234,6 +238,9 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 </div>
 
 
+
+
+
 <!-- CALENDAR PANEL -->
 <div id="panelCalendar" style="flex:1;overflow:auto;display:none;font-family:'DM Sans',system-ui,sans-serif;background:#fff">
   <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
@@ -251,26 +258,13 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
   </div>
   <div id="calGrid" style="overflow:auto;height:calc(100vh - 120px)"></div>
 </div>
+
+</div><!-- end app -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 
-<!-- CALENDAR PANEL -->
-<div id="panelCalendar" style="flex:1;overflow:auto;display:none;font-family:'DM Sans',system-ui,sans-serif;background:#fff">
-  <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button onclick="calNav(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
-      <button onclick="calToday()" style="padding:6px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#1e293b">Today</button>
-      <button onclick="calNav(1)" style="width:32px;height:32px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">→</button>
-      <div id="calTitle" style="font-size:18px;font-weight:700;color:#1e293b;margin-left:8px"></div>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button id="calAll" class="ch on" style="font-size:12px" onclick="calTeamFilter='';renderCalendar()">All</button>
-      <button id="calSL" class="ch" style="font-size:12px" onclick="calTeamFilter='Salt Lake County';renderCalendar()">🏔️ Salt Lake</button>
-      <button id="calUT" class="ch" style="font-size:12px" onclick="calTeamFilter='Utah County';renderCalendar()">🏡 Utah</button>
-    </div>
-  </div>
-  <div id="calGrid" style="overflow:auto;height:calc(100vh - 120px)"></div>
-</div>
+
+</div><!-- end app -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
@@ -1017,43 +1011,64 @@ function renderCalendar(){
   h+="</div>";
   el.innerHTML=h;
 
-  // Place appointments
+  // Place appointments with side-by-side layout for overlapping
   var weekNum=Math.floor((calWeekStart.getTime()-today.getTime())/(7*86400000));
   days.forEach(function(d,di){
     var dj=S.filter(function(s){
       if(s.dy!==d.name)return false;
       if(calTeamFilter&&s.tm!==calTeamFilter)return false;
-      // Check if recurring appointment is active this week
       if(s.rc==="Bi-weekly"&&Math.abs(weekNum)%2!==0)return false;
       if(s.rc==="Monthly"&&Math.abs(weekNum)%4!==0)return false;
       return true;
+    }).sort(function(a,b){return t2m(a.st)-t2m(b.st);});
+
+    // Calculate columns for overlapping appointments
+    var columns=[];
+    dj.forEach(function(s){
+      var sMin=t2m(s.st);
+      var eMin=sMin+s.hr*60;
+      var placed=false;
+      for(var col=0;col<columns.length;col++){
+        var lastInCol=columns[col][columns[col].length-1];
+        var lastEnd=t2m(lastInCol.st)+lastInCol.hr*60;
+        if(sMin>=lastEnd){columns[col].push(s);placed=true;break;}
+      }
+      if(!placed){columns.push([s]);}
     });
 
-    dj.forEach(function(s){
-      var startMin=t2m(s.st);
-      var endMin=startMin+s.hr*60;
-      var startHour=Math.floor(startMin/60);
-      var startFrac=(startMin%60)/60;
-      var durationHours=s.hr;
+    var totalCols=columns.length||1;
 
-      // Find the cell for this appointment's start hour
-      if(startHour<7||startHour>18)return;
-      var cell=document.getElementById("cell-"+di+"-"+startHour);
-      if(!cell)return;
+    columns.forEach(function(col,colIdx){
+      col.forEach(function(s){
+        var startMin=t2m(s.st);
+        var endMin=startMin+s.hr*60;
+        var startHour=Math.floor(startMin/60);
+        var startFrac=(startMin%60)/60;
 
-      var topPx=startFrac*60;
-      var heightPx=Math.max(durationHours*60,30);
-      var cls=s.tm==="Salt Lake County"?"cal-appt-sl":"cal-appt-ut";
+        if(startHour<7||startHour>18)return;
+        var cell=document.getElementById("cell-"+di+"-"+startHour);
+        if(!cell)return;
 
-      var apptDiv=document.createElement("div");
-      apptDiv.className="cal-appt "+cls;
-      apptDiv.style.top=topPx+"px";
-      apptDiv.style.height=heightPx+"px";
-      apptDiv.title=s.cl+"\n"+s.ad+", "+s.ct+"\n"+s.st+" ("+s.hr+"h)\n"+s.rc;
+        var topPx=startFrac*60;
+        var heightPx=Math.max(s.hr*60,30);
+        var cls=s.tm==="Salt Lake County"?"cal-appt-sl":"cal-appt-ut";
 
-      var timeStr=s.st+" - "+m2t(endMin);
-      apptDiv.innerHTML="<b>"+s.cl+"</b><span>"+timeStr+"</span><span>"+s.ct+"</span>";
-      cell.appendChild(apptDiv);
+        var widthPct=Math.floor(100/totalCols);
+        var leftPct=colIdx*widthPct;
+
+        var apptDiv=document.createElement("div");
+        apptDiv.className="cal-appt "+cls;
+        apptDiv.style.top=topPx+"px";
+        apptDiv.style.height=heightPx+"px";
+        apptDiv.style.left=leftPct+"%";
+        apptDiv.style.width=(widthPct-1)+"%";
+        apptDiv.style.borderRadius="6px";
+        apptDiv.title=s.cl+"\n"+s.ad+", "+s.ct+"\n"+s.st+" ("+s.hr+"h)\n"+s.rc;
+
+        var timeStr=s.st+" - "+m2t(endMin);
+        apptDiv.innerHTML="<b>"+s.cl+"</b><span>"+timeStr+"</span>"+(heightPx>40?"<span>"+s.ct+"</span>":"");
+        cell.appendChild(apptDiv);
+      });
     });
   });
 }
@@ -1291,9 +1306,14 @@ function renderDataList(){
       h+="<div style='font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 4px;padding-top:8px;border-top:1px solid #e2e8f0'>"+curDay+"</div>";
     }
     var t=TMETA[s.tm]||{c:"#666",i:"?",n:"?"};
+    var nxd=nextDate(s.dy);
+    var nxds=MOLONG[nxd.getMonth()]+" "+nxd.getDate()+", "+nxd.getFullYear();
     h+="<div class='data-row'>"+
       "<span style='color:"+t.c+";font-size:16px'>"+t.i+"</span>"+
-      "<span style='font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+s.cl+"</span>"+
+      "<div style='flex:1;min-width:0'>"+
+        "<div style='font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+s.cl+"</div>"+
+        "<div style='font-size:11px;color:#2563eb'>"+nxds+" · "+s.dy+"</div>"+
+      "</div>"+
       "<span style='color:#475569;font-size:12px;min-width:80px'>"+s.ct+"</span>"+
       "<span style='color:#475569;font-size:12px;min-width:70px'>"+s.st+"</span>"+
       "<span style='color:#475569;font-size:12px;min-width:30px'>"+s.hr+"h</span>"+
@@ -1353,6 +1373,9 @@ function analyzeConflicts(){
       var t=TMETA[c.team]||{i:"?",n:"?"};
       h+="<div class='conf-card'>";
       h+="<div style='font-size:13px;font-weight:700;color:#dc2626;margin-bottom:6px'>⚠ Time Overlap - "+c.day+" ("+t.n+")</div>";
+      var cdate=nextDate(c.day);
+      var cdateStr=MOLONG[cdate.getMonth()]+" "+cdate.getDate()+", "+cdate.getFullYear();
+      h+="<div style='font-size:12px;color:#2563eb;font-weight:600;margin-bottom:4px'>📅 Next: "+cdateStr+"</div>";
       h+="<div style='font-size:13px;color:#475569'><b>"+c.a.cl+"</b> ("+c.a.st+", "+c.a.hr+"h) overlaps with <b>"+c.b.cl+"</b> ("+c.b.st+", "+c.b.hr+"h) by "+c.overlapMin+" min</div>";
       
       // Recommend: find a day with capacity for the second appointment
@@ -1360,7 +1383,9 @@ function analyzeConflicts(){
       if(reco){
         h+="<div class='conf-reco'>";
         h+="<div style='font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px'>💡 Recommendation</div>";
-        h+="<div style='font-size:13px;color:#475569'>Move <b>"+c.b.cl+"</b> to <b>"+reco.day+" at "+reco.time+"</b>";
+        var recoDate=nextDate(reco.day);
+        var recoDateStr=MOLONG[recoDate.getMonth()]+" "+recoDate.getDate()+", "+recoDate.getFullYear();
+        h+="<div style='font-size:13px;color:#475569'>Move <b>"+c.b.cl+"</b> to <b>"+reco.day+", "+recoDateStr+" at "+reco.time+"</b>";
         if(reco.nearClient)h+=" (near "+reco.nearClient+")";
         h+="</div></div>";
       }
@@ -1370,6 +1395,9 @@ function analyzeConflicts(){
       var t=TMETA[c.team]||{i:"?",n:"?"};
       h+="<div class='conf-card'>";
       h+="<div style='font-size:13px;font-weight:700;color:#dc2626;margin-bottom:6px'>⚠ Over Capacity - "+c.day+" ("+t.n+")</div>";
+      var cpdate=nextDate(c.day);
+      var cpdateStr=MOLONG[cpdate.getMonth()]+" "+cpdate.getDate()+", "+cpdate.getFullYear();
+      h+="<div style='font-size:12px;color:#2563eb;font-weight:600;margin-bottom:4px'>📅 Next: "+cpdateStr+"</div>";
       h+="<div style='font-size:13px;color:#475569'>"+c.count+" appointments scheduled, max is "+c.max+".</div>";
       
       // Recommend moving the last appointment
@@ -1378,7 +1406,9 @@ function analyzeConflicts(){
       if(reco){
         h+="<div class='conf-reco'>";
         h+="<div style='font-size:12px;font-weight:700;color:#16a34a;margin-bottom:4px'>💡 Recommendation</div>";
-        h+="<div style='font-size:13px;color:#475569'>Move <b>"+lastJob.cl+"</b> to <b>"+reco.day+" at "+reco.time+"</b>";
+        var recoDate2=nextDate(reco.day);
+        var recoDateStr2=MOLONG[recoDate2.getMonth()]+" "+recoDate2.getDate()+", "+recoDate2.getFullYear();
+        h+="<div style='font-size:13px;color:#475569'>Move <b>"+lastJob.cl+"</b> to <b>"+reco.day+", "+recoDateStr2+" at "+reco.time+"</b>";
         if(reco.nearClient)h+=" (near "+reco.nearClient+")";
         h+="</div></div>";
       }
