@@ -36,6 +36,28 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 </style>
 </head>
 <body>
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#ffffff;z-index:10000;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',system-ui,sans-serif">
+  <div style="width:380px;max-width:90vw;padding:40px;border-radius:16px;border:1px solid #e2e8f0;box-shadow:0 8px 32px rgba(0,0,0,0.08)">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:36px;margin-bottom:8px">🧹</div>
+      <div style="font-size:22px;font-weight:700;color:#1e293b">CleanRoute Utah</div>
+      <div style="font-size:13px;color:#64748b;margin-top:4px">Sign in to access the scheduler</div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">Email</label>
+      <input id="loginEmail" type="email" placeholder="you@company.com" style="width:100%;padding:12px 16px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;font-family:inherit;outline:none;transition:border .15s;background:#f8fafc;color:#1e293b" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#cbd5e1'">
+    </div>
+    <div style="margin-bottom:24px">
+      <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">Password</label>
+      <input id="loginPass" type="password" placeholder="Enter password" style="width:100%;padding:12px 16px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;font-family:inherit;outline:none;transition:border .15s;background:#f8fafc;color:#1e293b" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#cbd5e1'" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" style="width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">Sign In</button>
+    <div id="loginError" style="margin-top:12px;text-align:center;font-size:13px;color:#dc2626;display:none"></div>
+    <div id="loginLoading" style="margin-top:12px;text-align:center;font-size:13px;color:#64748b;display:none">Signing in...</div>
+  </div>
+</div>
+
 
 <!-- HEADER -->
 <div style="padding:14px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
@@ -46,6 +68,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
   <div style="display:flex;gap:6px">
     <button id="stog" class="ch" style="font-size:12px" onclick="SS=!SS;render()">📋 Schedule</button>
     <button class="ch" style="font-size:12px" onclick="doReset()">↻ Reset</button>
+        <button class="ch" style="font-size:12px;color:#dc2626;border-color:#fecaca" onclick="doLogout()">↪ Sign Out</button>
   </div>
 </div>
 
@@ -77,6 +100,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 // ══════════════════════════════════════
 // DATA
@@ -686,6 +711,66 @@ function render(){
 }
 
 // ══════════════════════════════════════
+
+
+// ══════════════════════════════════════
+// FIREBASE AUTH
+// ══════════════════════════════════════
+var firebaseConfig = {
+  apiKey: "AIzaSyAOr0dVtAdNHPibvWdtbDfUkWPvgb8SMdQ",
+  authDomain: "cleanroute-2113b.firebaseapp.com",
+  projectId: "cleanroute-2113b",
+  storageBucket: "cleanroute-2113b.firebasestorage.app",
+  messagingSenderId: "386159424557",
+  appId: "1:386159424557:web:0ca26719f0ac9b228534a4"
+};
+if(typeof firebase==="undefined"){document.getElementById("loginError").textContent="Firebase failed to load. Check your connection.";document.getElementById("loginError").style.display="block";}
+else{
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+
+// Listen for auth state
+auth.onAuthStateChanged(function(user){
+  if(user){
+    // Logged in - show app, hide login
+    document.getElementById("loginOverlay").style.display="none";
+    document.getElementById("app").style.display="flex";
+  } else {
+    // Not logged in - show login, hide app
+    document.getElementById("loginOverlay").style.display="flex";
+    document.getElementById("app").style.display="none";
+  }
+});
+
+function doLogin(){
+  var email=document.getElementById("loginEmail").value.trim();
+  var pass=document.getElementById("loginPass").value;
+  var errEl=document.getElementById("loginError");
+  var loadEl=document.getElementById("loginLoading");
+  
+  if(!email||!pass){errEl.textContent="Enter email and password.";errEl.style.display="block";return;}
+  
+  errEl.style.display="none";
+  loadEl.style.display="block";
+  
+  auth.signInWithEmailAndPassword(email,pass)
+    .then(function(){loadEl.style.display="none";})
+    .catch(function(err){
+      loadEl.style.display="none";
+      var msg="Sign in failed.";
+      if(err.code==="auth/user-not-found"||err.code==="auth/wrong-password"||err.code==="auth/invalid-credential")msg="Invalid email or password.";
+      else if(err.code==="auth/invalid-email")msg="Invalid email address.";
+      else if(err.code==="auth/too-many-requests")msg="Too many attempts. Try again later.";
+      errEl.textContent=msg;
+      errEl.style.display="block";
+    });
+}
+
+function doLogout(){
+  if(confirm("Sign out of CleanRoute?"))auth.signOut();
+}
+} // end firebase else
+
 // EVENT WIRING
 // ══════════════════════════════════════
 document.addEventListener("DOMContentLoaded",function(){
