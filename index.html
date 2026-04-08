@@ -45,6 +45,18 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 .avail-full{background:#fee2e2;color:#dc2626;border:1px solid #fecaca}
 .conf-card{border:1px solid #fecaca;border-radius:10px;padding:14px;margin-bottom:8px;background:#fef2f2}
 .conf-reco{border:1px solid #bbf7d0;border-radius:10px;padding:14px;margin-top:8px;background:#f0fdf4}
+
+.cal-grid{display:grid;grid-template-columns:60px repeat(6,1fr);min-width:800px}
+.cal-header{padding:10px 4px;text-align:center;font-size:12px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;background:#f8fafc;position:sticky;top:0;z-index:2}
+.cal-header-today{background:#2563eb;color:#fff;border-radius:8px;padding:2px 0}
+.cal-time{padding:4px 8px;font-size:11px;color:#94a3b8;text-align:right;border-right:1px solid #e2e8f0;height:60px;background:#fff}
+.cal-cell{border-right:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;height:60px;position:relative;background:#fff}
+.cal-cell:hover{background:#f8fafc}
+.cal-appt{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 6px;font-size:11px;overflow:hidden;cursor:default;z-index:1;border-left:3px solid}
+.cal-appt-sl{background:#dbeafe;border-left-color:#2563eb;color:#1e3a5f}
+.cal-appt-ut{background:#dcfce7;border-left-color:#16a34a;color:#14532d}
+.cal-appt b{font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-appt span{font-size:10px;opacity:0.7;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -221,7 +233,45 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
   </div>
 </div>
 
+
+<!-- CALENDAR PANEL -->
+<div id="panelCalendar" style="flex:1;overflow:auto;display:none;font-family:'DM Sans',system-ui,sans-serif;background:#fff">
+  <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="calNav(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
+      <button onclick="calToday()" style="padding:6px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#1e293b">Today</button>
+      <button onclick="calNav(1)" style="width:32px;height:32px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">→</button>
+      <div id="calTitle" style="font-size:18px;font-weight:700;color:#1e293b;margin-left:8px"></div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button id="calAll" class="ch on" style="font-size:12px" onclick="calTeamFilter='';renderCalendar()">All</button>
+      <button id="calSL" class="ch" style="font-size:12px" onclick="calTeamFilter='Salt Lake County';renderCalendar()">🏔️ Salt Lake</button>
+      <button id="calUT" class="ch" style="font-size:12px" onclick="calTeamFilter='Utah County';renderCalendar()">🏡 Utah</button>
+    </div>
+  </div>
+  <div id="calGrid" style="overflow:auto;height:calc(100vh - 120px)"></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+
+<!-- CALENDAR PANEL -->
+<div id="panelCalendar" style="flex:1;overflow:auto;display:none;font-family:'DM Sans',system-ui,sans-serif;background:#fff">
+  <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="calNav(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
+      <button onclick="calToday()" style="padding:6px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#1e293b">Today</button>
+      <button onclick="calNav(1)" style="width:32px;height:32px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">→</button>
+      <div id="calTitle" style="font-size:18px;font-weight:700;color:#1e293b;margin-left:8px"></div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button id="calAll" class="ch on" style="font-size:12px" onclick="calTeamFilter='';renderCalendar()">All</button>
+      <button id="calSL" class="ch" style="font-size:12px" onclick="calTeamFilter='Salt Lake County';renderCalendar()">🏔️ Salt Lake</button>
+      <button id="calUT" class="ch" style="font-size:12px" onclick="calTeamFilter='Utah County';renderCalendar()">🏡 Utah</button>
+    </div>
+  </div>
+  <div id="calGrid" style="overflow:auto;height:calc(100vh - 120px)"></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 // ══════════════════════════════════════
@@ -902,6 +952,113 @@ function doLogout(){
 
 
 // ══════════════════════════════════════
+
+
+// ══════════════════════════════════════
+// CALENDAR VIEW
+// ══════════════════════════════════════
+var calWeekStart=null;
+var calTeamFilter="";
+
+function calInit(){
+  var today=new Date();today.setHours(0,0,0,0);
+  var dow=today.getDay();
+  calWeekStart=new Date(today);
+  calWeekStart.setDate(today.getDate()-dow+1); // Monday
+  if(dow===0)calWeekStart.setDate(calWeekStart.getDate()-7);
+}
+function calNav(dir){calWeekStart.setDate(calWeekStart.getDate()+(dir*7));renderCalendar();}
+function calToday(){calInit();renderCalendar();}
+
+function renderCalendar(){
+  if(!calWeekStart)calInit();
+  var el=document.getElementById("calGrid");
+  var titleEl=document.getElementById("calTitle");
+  if(!el)return;
+
+  // Update title
+  var wEnd=new Date(calWeekStart);wEnd.setDate(calWeekStart.getDate()+5);
+  var mStart=MOLONG[calWeekStart.getMonth()];
+  var mEnd=MOLONG[wEnd.getMonth()];
+  titleEl.textContent=mStart+(mStart!==mEnd?" "+calWeekStart.getDate()+" - "+mEnd:"")+
+    " "+calWeekStart.getDate()+(mStart===mEnd?" - "+wEnd.getDate():"")+", "+calWeekStart.getFullYear();
+
+  // Filter buttons
+  document.getElementById("calAll").className="ch "+(calTeamFilter===""?"on":"");
+  document.getElementById("calSL").className="ch "+(calTeamFilter==="Salt Lake County"?"on":"");
+  document.getElementById("calUT").className="ch "+(calTeamFilter==="Utah County"?"on":"");
+
+  var today=new Date();today.setHours(0,0,0,0);
+  var days=[];
+  for(var d=0;d<6;d++){
+    var dt=new Date(calWeekStart);dt.setDate(calWeekStart.getDate()+d);
+    var dayName=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][dt.getDay()];
+    days.push({date:dt,name:dayName,isToday:dt.getTime()===today.getTime()});
+  }
+
+  // Build grid
+  var h="<div class='cal-grid'>";
+
+  // Header row
+  h+="<div class='cal-header'></div>";
+  days.forEach(function(d){
+    var label=d.name.slice(0,3).toUpperCase()+" "+(d.date.getMonth()+1)+"/"+d.date.getDate();
+    h+="<div class='cal-header'>"+(d.isToday?"<div class='cal-header-today'>"+label+"</div>":label)+"</div>";
+  });
+
+  // Time rows (7am to 7pm)
+  for(var t=7;t<=18;t++){
+    var label=t>12?(t-12)+"pm":(t===12?"12pm":t+"am");
+    h+="<div class='cal-time'>"+label+"</div>";
+    days.forEach(function(d,di){
+      h+="<div class='cal-cell' id='cell-"+di+"-"+t+"'></div>";
+    });
+  }
+  h+="</div>";
+  el.innerHTML=h;
+
+  // Place appointments
+  var weekNum=Math.floor((calWeekStart.getTime()-today.getTime())/(7*86400000));
+  days.forEach(function(d,di){
+    var dj=S.filter(function(s){
+      if(s.dy!==d.name)return false;
+      if(calTeamFilter&&s.tm!==calTeamFilter)return false;
+      // Check if recurring appointment is active this week
+      if(s.rc==="Bi-weekly"&&Math.abs(weekNum)%2!==0)return false;
+      if(s.rc==="Monthly"&&Math.abs(weekNum)%4!==0)return false;
+      return true;
+    });
+
+    dj.forEach(function(s){
+      var startMin=t2m(s.st);
+      var endMin=startMin+s.hr*60;
+      var startHour=Math.floor(startMin/60);
+      var startFrac=(startMin%60)/60;
+      var durationHours=s.hr;
+
+      // Find the cell for this appointment's start hour
+      if(startHour<7||startHour>18)return;
+      var cell=document.getElementById("cell-"+di+"-"+startHour);
+      if(!cell)return;
+
+      var topPx=startFrac*60;
+      var heightPx=Math.max(durationHours*60,30);
+      var cls=s.tm==="Salt Lake County"?"cal-appt-sl":"cal-appt-ut";
+
+      var apptDiv=document.createElement("div");
+      apptDiv.className="cal-appt "+cls;
+      apptDiv.style.top=topPx+"px";
+      apptDiv.style.height=heightPx+"px";
+      apptDiv.title=s.cl+"\n"+s.ad+", "+s.ct+"\n"+s.st+" ("+s.hr+"h)\n"+s.rc;
+
+      var timeStr=s.st+" - "+m2t(endMin);
+      apptDiv.innerHTML="<b>"+s.cl+"</b><span>"+timeStr+"</span><span>"+s.ct+"</span>";
+      cell.appendChild(apptDiv);
+    });
+  });
+}
+
+
 // TAB SWITCHING
 // ══════════════════════════════════════
 var activeTab="dashboard";
@@ -912,9 +1069,12 @@ function switchTab(tab){
   document.getElementById("panelScheduler").style.display=tab==="scheduler"?"flex":"none";
   var pd=document.getElementById("panelData");if(pd)pd.style.display=tab==="data"?"block":"none";
   document.getElementById("panelDashboard").style.display=tab==="dashboard"?"block":"none";
+  document.getElementById("panelCalendar").style.display=tab==="calendar"?"block":"none";
   document.getElementById("tabSched").className="ch "+(tab==="scheduler"?"on":"");
   document.getElementById("tabDash").className="ch "+(tab==="dashboard"||tab==="data"?"on":"");
+  document.getElementById("tabCal").className="ch "+(tab==="calendar"?"on":"");
   if(tab==="data")renderDataList();
+  if(tab==="calendar")renderCalendar();
   if(tab==="dashboard"){renderDashStats();renderDashboard();renderDataList();}
   if(tab==="scheduler"){
     setTimeout(function(){
