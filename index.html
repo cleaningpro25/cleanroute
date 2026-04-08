@@ -125,6 +125,15 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#ffffff;color:#1e293b
 <div id="panelDashboard" style="flex:1;overflow:auto;padding:24px;font-family:'DM Sans',system-ui,sans-serif">
   <div style="max-width:1000px;margin:0 auto">
 
+    <!-- Quick Action: Go to Search -->
+    <div onclick="switchTab('scheduler')" style="padding:24px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;cursor:pointer;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;transition:all .15s;box-shadow:0 4px 12px rgba(37,99,235,0.3)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <div>
+        <div style="font-size:20px;font-weight:700">🔍 Search Best Schedule</div>
+        <div style="font-size:14px;opacity:0.85;margin-top:4px">Find the best day, time, and route for a new appointment</div>
+      </div>
+      <div style="font-size:32px">→</div>
+    </div>
+
     <!-- Availability Section -->
     <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:4px">📊 Availability Dashboard</div>
     <div style="font-size:13px;color:#475569;margin-bottom:16px">Shows open slots across the next 4 weeks for each team.</div>
@@ -844,6 +853,12 @@ auth.onAuthStateChanged(function(user){
     document.getElementById("loginOverlay").style.display="none";
     document.getElementById("app").style.display="flex";
     switchTab("dashboard");
+    // Pre-init map in background after a delay
+    setTimeout(function(){
+      document.getElementById("panelScheduler").style.display="flex";
+      if(typeof google!=="undefined"&&google.maps&&!map){initMap();}
+      document.getElementById("panelScheduler").style.display="none";
+    },500);
   } else {
     // Not logged in - show login, hide app
     document.getElementById("loginOverlay").style.display="flex";
@@ -891,12 +906,26 @@ var dashTeam="Salt Lake County";
 function switchTab(tab){
   activeTab=tab;
   document.getElementById("panelScheduler").style.display=tab==="scheduler"?"flex":"none";
-  document.getElementById("panelData").style.display=tab==="data"?"block":"none";
+  var pd=document.getElementById("panelData");if(pd)pd.style.display=tab==="data"?"block":"none";
   document.getElementById("panelDashboard").style.display=tab==="dashboard"?"block":"none";
   document.getElementById("tabSched").className="ch "+(tab==="scheduler"?"on":"");
   document.getElementById("tabDash").className="ch "+(tab==="dashboard"||tab==="data"?"on":"");
   if(tab==="data")renderDataList();
   if(tab==="dashboard"){renderDashboard();renderDataList();}
+  if(tab==="scheduler"){
+    setTimeout(function(){
+      if(!map&&window._gmReady){
+        try{initMap();}catch(e){console.error(e);}
+      }
+      if(map){
+        google.maps.event.trigger(map,"resize");
+        map.setCenter({lat:40.45,lng:-111.85});
+        map.setZoom(10);
+        updMap();
+      }
+    },150);
+    render();
+  }
 }
 
 // ══════════════════════════════════════
